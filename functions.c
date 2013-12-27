@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config.h"
+#include "functions.h"
 
 
 
@@ -250,7 +250,7 @@ int load_Mod_image (ImageMode mode, const char *arg, int userW, int userH,
 			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, x, y, imgW, imgH);
 		}
 		if (ck0 != 3)
-		{
+		{ 
 			left = (width - userW) / 2;
 			top = (height - userH) /2;
 			
@@ -259,7 +259,7 @@ int load_Mod_image (ImageMode mode, const char *arg, int userW, int userH,
 
 			for (x = left; x < width; x += userW)
 				for (y = top; y < height; y += userH)
-
+			
 			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, x, y, userW, userH);
 		}
 	}
@@ -281,23 +281,19 @@ int load_Mod_image (ImageMode mode, const char *arg, int userW, int userH,
 
 int findX(char *whereisX, int *rW, int *rH)
 {
-
 	char *tok1, *tok2, *saveptr;
-	int x = (int) malloc(sizeof(whereisX));
-	char str1[x];
+	char str1[40];
 	int bW, bH;
-
 	strcpy(str1, whereisX);
-
 	tok1 = strtok_r(whereisX, "x", &saveptr);
 	tok2 = strtok_r(NULL, "x", &saveptr);
 
 	if ( strcmp(tok1, "0") == 0)
-	{
+	{	
 		return 3;
 	}
 	else if ( tok2 == NULL)
-	{
+	{ 
 		return 1;
 	}
 	 else
@@ -309,7 +305,7 @@ int findX(char *whereisX, int *rW, int *rH)
 		/* assigning the results to the output */
            *rW =  bW;
            *rH =  bH;
-
+		
            return 0;
          }
 } //end findX

@@ -1,5 +1,26 @@
-
-/* complie with this line
+/*
+ * main.c
+ * 
+ * Copyright 2013 userx <userx@gmail.com>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ * 
+ * 
+ *
+ * complie with this line
  *
  * `imlib2-config --cflags` `imlib2-config --libs`
  *
@@ -12,7 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config.h"
+#include "functions.h"
 
 
 
@@ -39,7 +60,7 @@ int main (int argc, char **argv)
 	char str3[40];
 	char str4[40];
 	char str5[40];
-	int ck0 = -1;
+	int ck0;
 	int w, h;
 	w = 0;
 	h = 0;
@@ -70,26 +91,9 @@ int main (int argc, char **argv)
 		imlib_context_set_drawable (pixmap);
 		imlib_context_set_color_range (imlib_create_color_range ());
 		
-	
-		
-		printf("before for check\n");
-		for (int d = 1; d <= argc; d++)
-		{
-			sscanf(argv[d], "jpg", "png");
-			
-		
-			image = imlib_create_image (width, height);
-			imlib_context_set_image (image);
-		
-		}
-		
-		
-		
-		for(int w=0; w <= argc; w++)
-		{
-			printf("%d\n",w);
-		}
-	}
+		image = imlib_create_image (width, height);
+		imlib_context_set_image (image);
+				
 		imlib_context_set_color (0, 0, 0, 255);
 		imlib_image_fill_rectangle (0, 0, width, height);
 
@@ -225,8 +229,6 @@ int main (int argc, char **argv)
 		  continue;
 		}
 	 }
-	//#################################Start my code
-
 	else if (strcmp (argv[i], "-dia") == 0)
 	{
 		if((++i) >= argc)
@@ -236,7 +238,7 @@ int main (int argc, char **argv)
 		}
 			strcpy (str1, argv[i]);
 			strcpy (str2, str1);
-
+				
 			if ( findX(str1, &w, &h) == 1 )
 			{
 				fprintf(stderr, " Bad Format\n");
@@ -249,6 +251,8 @@ int main (int argc, char **argv)
 			}
 			else
 			{
+				//if format is correct then assign a number for
+				//load_Mod_Image to check
 				ck0 = -2;
 				w = w;
 				h = h;
@@ -257,7 +261,7 @@ int main (int argc, char **argv)
 			{
 			fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
 			}
-	} //##################### TILE ###################
+	} 
 	else if (strcmp (argv[i], "-tile") == 0)
 	{
 		if ((++i) >= argc)
@@ -266,23 +270,21 @@ int main (int argc, char **argv)
 			fprintf(stderr, "format 0 missing \n");
 			continue;
 			}
-
-
-			strcpy (str1, argv[i]);
-			strcpy (str2, str1);
-			strcpy (str3, str2);
-			strcpy (str4, str3);
-			strcpy (str5, str4);
+				strcpy (str1, argv[i]);
+				strcpy (str2, str1);
+				strcpy (str3, str2);
+				strcpy (str4, str3);
+				strcpy (str5, str4);
 
 
 			if ( findX(str1, &w, &h) == 3 &&  ((++i) >= argc))
-			{
+			{ 
 				fprintf(stderr, "missing Image\n");
 				continue;
-			}
+			} //check to see if format is -tile 0 
 			else if (findX(str2, &w, &h) == 3)
 			{
-				
+				ck0 = 3;
 				if( load_Mod_image(Tile, argv[i], width, height, alpha, image, ck0) == 1 )
 				{
 					fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
@@ -292,13 +294,12 @@ int main (int argc, char **argv)
 
 			if (findX(str3, &w, &h) == 1)
 			{
-
 				fprintf(stderr, "bad format\n");
 				continue;
 			}
 			 if (findX(str4, &w, &h) == 0 && ((++i) >= argc))
 			{
-				fprintf(stderr, "missing image again\n");
+				fprintf(stderr, "missing something again\n");
 				continue;
 			}
 			if (findX (str5, &w, &h) == 0 )
@@ -306,7 +307,7 @@ int main (int argc, char **argv)
 				ck0 = 2;
 				w = w;
 				h = h;
-
+				
 			}
 			if( load_Mod_image(Tile, argv[i], w, h, alpha, image, ck0) == 1 )
 			{
