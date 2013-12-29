@@ -1,5 +1,5 @@
-#include <Imlib2.h>
 #include <X11/Xatom.h>
+#include </usr/include/Imlib2.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -309,3 +309,19 @@ int findX(char *whereisX, int *rW, int *rH)
            return 0;
          }
 } //end findX
+
+void checkForNull(char *A1, char *A2) {
+	
+	
+	 		
+	 		if (A1 && *A1  || A2 && *A2)
+	 		{
+					;
+			}
+			else
+			{	printf("go buy your mom some flowers, come back and try it again \
+						user error, %s -- %s\n", A1, A2);
+						
+				abort();
+			}
+			}

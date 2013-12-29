@@ -1,3 +1,6 @@
+
+
+
 #ifndef CONFIG_H_INCLUDED
 #define CONFIG_H_INCLUDED
 
@@ -16,6 +19,7 @@ int parse_color (char *arg, PColor c, int a);
 int load_Mod_image (ImageMode mode, const char *arg, int rootW, int rootH,
 				int alpha, Imlib_Image rootimg, int ck0);
 int findX(char *whereisX, int *rW, int *rH);
+void checkForNull(char *A1, char *A2);
 
 #define DESCRIPTION "wallpaper setter with user options"
 #define PACKAGE_STRING "mhrootimg 1.0"
