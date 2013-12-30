@@ -83,7 +83,7 @@ void usage (char *commandline)
         "Image files:\n"
         " -center <image>            Render an image centered on screen\n"
         " -tile 0 <image>            Tiles the image at orginal size\n"
-        " -tile <size>x<image>       Tiles image at user set size\n"
+        " -tile <size>x<size> <image>  Tiles image at user set size\n"
         " -fill <image>              Render image at monitor settings\n"
         "\n"
         "Manipulations:\n"
@@ -225,13 +225,13 @@ int load_Mod_image (ImageMode mode, const char *arg, int userW, int userH,
 	int imgW, imgH, o;
 	int left, top;
 	left=top=0;
-
+    	int x, y;
 	width = DisplayWidth (display, screen);
 	height = DisplayHeight (display, screen);
 	
 	Imlib_Image buffer = imlib_load_image (arg);
 
-	if ( !rootimg ) 
+	if ( !buffer ) 
 	{
 		return 1;
 	}
@@ -271,7 +271,7 @@ int load_Mod_image (ImageMode mode, const char *arg, int userW, int userH,
 		
 		
 		if (userW >= width || userH >= height ) 
-		{
+		{ 
 			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, 0, 0, width, height);
 		}
 		else if ( userH < height || userW < width )
@@ -287,10 +287,9 @@ int load_Mod_image (ImageMode mode, const char *arg, int userW, int userH,
 
 	if (mode == Tile)
 	{
-		int x, y;
-		
 		if ( ck0 == 3 )
-		{
+		{ 
+			
 			left = (width - imgW) / 2;
 			top = (height - imgH) / 2;
 			
@@ -301,6 +300,7 @@ int load_Mod_image (ImageMode mode, const char *arg, int userW, int userH,
 				for (y = top; y < height; y += imgH)
 			
 			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, x, y, imgW, imgH);
+		
 		}
 		if (ck0 != 3)
 		{ 
@@ -333,7 +333,7 @@ int load_Mod_image (ImageMode mode, const char *arg, int userW, int userH,
 }
 
 int findX(char *whereisX, int *rW, int *rH)
-{
+{ 
 	char *tok1, *tok2, *saveptr;
 	char str1[40];
 	int bW, bH;
@@ -365,17 +365,16 @@ int findX(char *whereisX, int *rW, int *rH)
 
 void checkForNull(char *A1, char *A2){ 
 	
-	
-	 	if ( A1 && *A1  || A2 && *A2   )
+		if ( A1 && *A1  || A2 && *A2   )
 	 		{
 					;
 			}
 			else
-			{	printf("<user error>\nGo buy your Mom some flowers, \nthen come back and try it again.\n");
-						
-				abort();
+			{
+    printf("user error\n");
+		abort();
 			}
-			}
+	} //end check for null
 //####################### End Functions ##########################
 
 
@@ -399,15 +398,14 @@ int main (int argc, char **argv)
 	char str4[40];
 	char str5[40];
 	
-	int ckargc;
 	int ck0;
 	int w, h; 
 	w = 0;
 	h = 0;
-	ckargc = argc;		
+	ck0 = -10;		
 			
-	char strA1[30] = "hwe";
-	char strA2[30] = "hwer";
+	char strA1[30]; 
+	char strA2[30];
 	const char jpg[15] = "jpg"; //1
 	const char png[15] = "png"; //2
 	
@@ -420,12 +418,6 @@ int main (int argc, char **argv)
 	A1 = strstr(strA1, jpg);
 	A2 = strstr(strA2, png);
 	
-	
-	
-
-		
-		
-		
 	for (screen = 0; screen < ScreenCount (_display); screen++)
 	{
 		display = XOpenDisplay (NULL);
@@ -560,7 +552,7 @@ int main (int argc, char **argv)
 	else if (strcmp (argv[i], "-gradient") == 0)
 	{
 		int angle;
-
+		 //checkForNull(A1, A2);
 		if ((++i) >= argc)
 		{
 			fprintf (stderr, "Missing angle\n");
@@ -571,7 +563,7 @@ int main (int argc, char **argv)
 				fprintf (stderr, "Bad angle (%s)\n", argv[i]);
 				continue;
 			}
-
+			
 		imlib_image_fill_color_range_rectangle (0, 0, width, height,
 												angle);
 	}
@@ -583,6 +575,7 @@ int main (int argc, char **argv)
 		  fprintf (stderr, "Missing image\n");
 		  continue;
 		}
+		
 		if ( load_Mod_image(Fill, argv[i], width, height, alpha, image, ck0) == 1)
 		{
 		  fprintf (stderr, "Bad image (%s)\n", argv[i]);
@@ -590,14 +583,14 @@ int main (int argc, char **argv)
 		}
 	 }
 	else if (strcmp (argv[i], "-dia") == 0)
-	{
+	{ 
 		if((++i) >= argc)
 		{
 			fprintf(stderr, "missing Dia, and Image\n");
 			continue;
 		}
 			//check to be sure image format is written right or abort
-	 	    checkForNull(A1, A2);
+	 	    //checkForNull(A1, A2);
 			strcpy (str1, argv[i]);
 			strcpy (str2, str1);
 		
@@ -607,7 +600,7 @@ int main (int argc, char **argv)
 				continue;
 			}
 			else if (findX(str2, &w, &h) == 0 && ((++i) >= argc))
-			{ printf("argc %d, -- argv[i] %s\n", argc, argv[i]);
+			{ 
 				fprintf(stderr, "Missing Image\n");
 				continue;
 			}
@@ -620,6 +613,7 @@ int main (int argc, char **argv)
 				h = w; //newH;
 				printf("you entered -> %d w, %d h\n", w, h);
 			}
+			
 			if( load_Mod_image(Dia, argv[i], w, h, alpha, image, ck0) == 1 )
 			{
 			fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
@@ -639,30 +633,29 @@ int main (int argc, char **argv)
 				strcpy (str4, str3);
 				strcpy (str5, str4);
 
-
+				//check for proper format -tile 0 <image>
 			if ( findX(str1, &w, &h) == 3 &&  ((++i) >= argc))
 			{ 
-				fprintf(stderr, "missing Image\n");
 				continue;
-			} //check to see if format is -tile 0 
+			} //check to see if format is -tile 0 image is there then load img
 			else if (findX(str2, &w, &h) == 3)
-			{
-				ck0 = 3;
+			{  
+				 ck0 = 3; 
 				if( load_Mod_image(Tile, argv[i], width, height, alpha, image, ck0) == 1 )
 				{
-					fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
+					fprintf(stderr, "Bad Image |%s|\n", argv[i]);
 					continue;
 				}
 			}
-
+				// check for dimentions -tile <dia>x<dia> <image>
 			if (findX(str3, &w, &h) == 1)
 			{
-				fprintf(stderr, "bad format\n");
+				fprintf(stderr, "Bad Format\n");
 				continue;
 			}
 			 if (findX(str4, &w, &h) == 0 && ((++i) >= argc))
 			{
-				fprintf(stderr, "missing something again\n");
+				fprintf(stderr, "Bad Format {%s missing 0) %s}\n",argv[i-2], argv[i-1]);
 				continue;
 			}
 			if (findX (str5, &w, &h) == 0 )
@@ -670,24 +663,24 @@ int main (int argc, char **argv)
 				ck0 = 2;
 				w = w;
 				h = h;
-				
 			}
+			
 			if( load_Mod_image(Tile, argv[i], w, h, alpha, image, ck0) == 1 )
 			{
-			fprintf(stderr, "Bad Image or Bad Image Dimension\n");
+			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
 			}
 
 	}
 
 	else if (strcmp (argv[i], "-center") == 0)
-	{
+	{ 
 		if ((++i) >= argc)
 		{
 			fprintf (stderr, "Missing image\n");
 			continue;
 		}
 			if (load_Mod_image (Center, argv[i], width, height, alpha, image, ck0) == 1)
-			{
+			{ 
 				fprintf (stderr, "Bad image (%s)\n", argv[i]);
 				continue;
 			}
