@@ -363,15 +363,9 @@ int findX(char *whereisX, int *rW, int *rH)
          }
 } //end findX
 
-void checkForNull(char *A1, char *A2){ //, int ckargc) {
+void checkForNull(char *A1, char *A2){ 
 	
-	/*
-	 		if ( ckargc <= 1 )
-	 		{
-				printf("<user error>\nGo buy your Mom some flowers, \nthen come back and try it again \n");
-				abort();
-			}
-				**/
+	
 	 	if ( A1 && *A1  || A2 && *A2   )
 	 		{
 					;
@@ -422,13 +416,6 @@ int main (int argc, char **argv)
 
 	strcpy(strA1, argv[argc-1]);
 	strcpy(strA2, strA1);
-	
-	
-		
-	//strcpy (str1, argv[argc-2]);
-//	strcpy (str2, str1);
-	
-			
 			
 	A1 = strstr(strA1, jpg);
 	A2 = strstr(strA2, png);
