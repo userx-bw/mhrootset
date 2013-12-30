@@ -25,6 +25,8 @@
  * `imlib2-config --cflags` `imlib2-config --libs`
  *
  * */
+ 
+ 
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -47,7 +49,7 @@ int main (int argc, char **argv)
 	Visual *vis;
 	Colormap cm;
 	Display *_display;
-	Imlib_Context *context;
+	Imlib_Context context;
 	Imlib_Image image;
 	Pixmap pixmap;
 	Imlib_Color_Modifier modifier = NULL;
@@ -60,12 +62,32 @@ int main (int argc, char **argv)
 	char str3[40];
 	char str4[40];
 	char str5[40];
+		
 	int ck0;
 	int w, h;
 	w = 0;
 	h = 0;
-
-
+			
+			
+	char strA1[30] = "hwe";
+	char strA2[30] = "hwer";
+	const char jpg[15] = "jpg"; //1
+	const char png[15] = "png"; //2
+	
+	char *A1; 
+	char *A2; 
+	
+	strcpy(strA1, argv[argc-1]);
+	strcpy(strA2, strA1);
+	A1 = strstr(strA1, jpg);
+	A2 = strstr(strA2, png);
+	
+		//check to be sure image format is written right or abort
+	 	checkForNull(A1, A2);
+		
+		
+			
+		
 	for (screen = 0; screen < ScreenCount (_display); screen++)
 	{
 		display = XOpenDisplay (NULL);
@@ -93,13 +115,13 @@ int main (int argc, char **argv)
 		
 		image = imlib_create_image (width, height);
 		imlib_context_set_image (image);
-				
+				printf("1\n");
 		imlib_context_set_color (0, 0, 0, 255);
 		imlib_image_fill_rectangle (0, 0, width, height);
 
 		imlib_context_set_dither (1);
 		imlib_context_set_blend (1);
-
+		printf("2\n");
 		alpha = 255;
 
 
@@ -505,6 +527,6 @@ int main (int argc, char **argv)
 		imlib_context_free (context);
 
 	} // end for loop off screen
-
+                   //   } //  frist if statment at start of main
   return 0;
 }
