@@ -363,16 +363,21 @@ int findX(char *whereisX, int *rW, int *rH)
          }
 } //end findX
 
-void checkForNull(char *A1, char *A2) {
+void checkForNull(char *A1, char *A2){ //, int ckargc) {
 	
-	
-	 		
-	 		if (A1 && *A1  || A2 && *A2)
+	/*
+	 		if ( ckargc <= 1 )
+	 		{
+				printf("<user error>\nGo buy your Mom some flowers, \nthen come back and try it again \n");
+				abort();
+			}
+				**/
+	 	if ( A1 && *A1  || A2 && *A2   )
 	 		{
 					;
 			}
 			else
-			{	printf("<user error>\nGo buy your Mom some flowers, \nthen come back and try it again \n");
+			{	printf("<user error>\nGo buy your Mom some flowers, \nthen come back and try it again.\n");
 						
 				abort();
 			}
@@ -382,6 +387,7 @@ void checkForNull(char *A1, char *A2) {
 
 int main (int argc, char **argv)
 {
+	
 	Visual *vis;
 	Colormap cm;
 	Display *_display;
@@ -398,12 +404,13 @@ int main (int argc, char **argv)
 	char str3[40];
 	char str4[40];
 	char str5[40];
-		
+	
+	int ckargc;
 	int ck0;
 	int w, h; 
 	w = 0;
 	h = 0;
-			
+	ckargc = argc;		
 			
 	char strA1[30] = "hwe";
 	char strA2[30] = "hwer";
@@ -412,20 +419,23 @@ int main (int argc, char **argv)
 	
 	char *A1; 
 	char *A2; 
-	
+
 	strcpy(strA1, argv[argc-1]);
 	strcpy(strA2, strA1);
 	
-	strcpy (str1, argv[argc-2]);
-	strcpy (str2, str1);
+	
+		
+	//strcpy (str1, argv[argc-2]);
+//	strcpy (str2, str1);
 	
 			
 			
 	A1 = strstr(strA1, jpg);
 	A2 = strstr(strA2, png);
 	
-		//check to be sure image format is written right or abort
-				checkForNull(A1, A2);
+	
+	
+
 		
 		
 		
@@ -456,13 +466,13 @@ int main (int argc, char **argv)
 		
 		image = imlib_create_image (width, height);
 		imlib_context_set_image (image);
-				printf("1\n");
+				
 		imlib_context_set_color (0, 0, 0, 255);
 		imlib_image_fill_rectangle (0, 0, width, height);
 
 		imlib_context_set_dither (1);
 		imlib_context_set_blend (1);
-		printf("2\n");
+		
 		alpha = 255;
 
 
@@ -599,11 +609,12 @@ int main (int argc, char **argv)
 			fprintf(stderr, "missing Dia, and Image\n");
 			continue;
 		}
-		printf("in dia\n");
-			//strcpy (str1, argv[i]);
-			//strcpy (str2, str1);
-				 printf("%s\n", str2);
-			if ( findX(str1, &w, &h) == 1 )
+			//check to be sure image format is written right or abort
+	 	    checkForNull(A1, A2);
+			strcpy (str1, argv[i]);
+			strcpy (str2, str1);
+		
+				if ( findX(str1, &w, &h) == 1 )
 			{
 				fprintf(stderr, " Bad Format\n");
 				continue;
@@ -620,7 +631,7 @@ int main (int argc, char **argv)
 				ck0 = -2;
 				w = w; // newW
 				h = w; //newH;
-				printf("%d w, %d h\n", w, h);
+				printf("you entered -> %d w, %d h\n", w, h);
 			}
 			if( load_Mod_image(Dia, argv[i], w, h, alpha, image, ck0) == 1 )
 			{
