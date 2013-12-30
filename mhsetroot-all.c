@@ -22,7 +22,7 @@
  *
  * complie with this line
  *
- * `imlib2-config --cflags` `imlib2-config --libs`
+ *  
  *
  * */
  
@@ -363,18 +363,6 @@ int findX(char *whereisX, int *rW, int *rH)
          }
 } //end findX
 
-void checkForNull(char *A1, char *A2){ 
-	
-		if ( A1 && *A1  || A2 && *A2   )
-	 		{
-					;
-			}
-			else
-			{
-    printf("user error\n");
-		abort();
-			}
-	} //end check for null
 //####################### End Functions ##########################
 
 
@@ -402,22 +390,8 @@ int main (int argc, char **argv)
 	int w, h; 
 	w = 0;
 	h = 0;
-	ck0 = -10;		
+		
 			
-	char strA1[30]; 
-	char strA2[30];
-	const char jpg[15] = "jpg"; //1
-	const char png[15] = "png"; //2
-	
-	char *A1; 
-	char *A2; 
-
-	strcpy(strA1, argv[argc-1]);
-	strcpy(strA2, strA1);
-			
-	A1 = strstr(strA1, jpg);
-	A2 = strstr(strA2, png);
-	
 	for (screen = 0; screen < ScreenCount (_display); screen++)
 	{
 		display = XOpenDisplay (NULL);
@@ -552,7 +526,7 @@ int main (int argc, char **argv)
 	else if (strcmp (argv[i], "-gradient") == 0)
 	{
 		int angle;
-		 //checkForNull(A1, A2);
+		 
 		if ((++i) >= argc)
 		{
 			fprintf (stderr, "Missing angle\n");
@@ -586,22 +560,20 @@ int main (int argc, char **argv)
 	{ 
 		if((++i) >= argc)
 		{
-			fprintf(stderr, "missing Dia, and Image\n");
+			fprintf(stderr, "missing information to load image\n");
 			continue;
 		}
-			//check to be sure image format is written right or abort
-	 	    //checkForNull(A1, A2);
 			strcpy (str1, argv[i]);
 			strcpy (str2, str1);
 		
 				if ( findX(str1, &w, &h) == 1 )
 			{
-				fprintf(stderr, " Bad Format\n");
+				fprintf(stderr, " Bad Format < %s >\n", argv[i]);
 				continue;
 			}
 			else if (findX(str2, &w, &h) == 0 && ((++i) >= argc))
 			{ 
-				fprintf(stderr, "Missing Image\n");
+				fprintf(stderr, "Bad Format: try -dia <size>x<size> <image> \n");
 				continue;
 			}
 			else
@@ -611,7 +583,6 @@ int main (int argc, char **argv)
 				ck0 = -2;
 				w = w; // newW
 				h = w; //newH;
-				printf("you entered -> %d w, %d h\n", w, h);
 			}
 			
 			if( load_Mod_image(Dia, argv[i], w, h, alpha, image, ck0) == 1 )
@@ -655,7 +626,7 @@ int main (int argc, char **argv)
 			}
 			 if (findX(str4, &w, &h) == 0 && ((++i) >= argc))
 			{
-				fprintf(stderr, "Bad Format {%s missing 0) %s}\n",argv[i-2], argv[i-1]);
+				fprintf(stderr, "Bad Format: try %s 0 %s \n",argv[i-2], argv[i-1]);
 				continue;
 			}
 			if (findX (str5, &w, &h) == 0 )
@@ -861,7 +832,7 @@ int main (int argc, char **argv)
 		imlib_context_free (context);
 
 	} // end for loop off screen
-                   //   } //  frist if statment at start of main
+                  
   return 0;
 }
 
