@@ -1,25 +1,10 @@
 
+#ifndef FUNCTIONS_H_INCLUDED
+#define FUNCTIONS_H_INCLUDED
 
 
-#ifndef CONFIG_H_INCLUDED
-#define CONFIG_H_INCLUDED
 
-typedef enum
-{ Fill, Dia, Tile, Center } ImageMode;
 
-typedef struct
-{
-	int r, g, b, a;
-}	Color, *PColor;
-
-void usage (char *commandline);
-int setRootAtoms (Pixmap pixmap);
-int getHex (char c);
-int parse_color (char *arg, PColor c, int a);
-int load_Mod_image (ImageMode mode, const char *arg, int rootW, int rootH,
-				int alpha, Imlib_Image rootimg, int ck0);
-int findX(char *whereisX, int *rW, int *rH);
-void checkForNull(char *A1, char *A2);
 
 #define DESCRIPTION "wallpaper setter with user options"
 #define PACKAGE_STRING "mhrootimg 1.0"
@@ -28,4 +13,8 @@ void checkForNull(char *A1, char *A2);
 #define VERSION "1.0"
 #define PACKAGE_BUGREPORT "userxbw@gmail.com"
 
-#endif // CONFIG_H_INCLUDED
+
+
+
+
+#endif // FUNCTIONS_H_INCLUDED
