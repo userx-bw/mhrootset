@@ -40,6 +40,11 @@ void usage (char *commandline)
         "\n"
         "-tilex <dimentions> <image>  Renders image at users set size\n"
         "                                  Format <size>x<size>\n"
+        "-tileh <dimentions> <image> Renders tiled image within image\n"
+        "                            horizontally\n"
+        "-tilev <dimentions> <image> Renders tiled image within image\n"
+        "                            vertically\n"
+        "-tilet <dimentions> <image> Renders tiled image within image\n"
         "\n"
         "Image files:\n"
         " -center <image>            Render an image centered on screen\n"
@@ -401,8 +406,7 @@ int load_Mod_image (ImageMode mode, const char *arg, int rootW, int rootH,
 	return 1;
 } 
 
-int tile_in_tile (ImageMode mode, const char *arg, int rootW, int rootH, int alpha, Imlib_Image rootimg)
-				{
+int tile_in_tile (ImageMode mode, const char *arg, int rootW, int rootH, int alpha, Imlib_Image rootimg) {
 				
 				
 	int left, top, x, y;
@@ -429,6 +433,7 @@ int tile_in_tile (ImageMode mode, const char *arg, int rootW, int rootH, int alp
 
 	if (mode == Tileh)
 	{
+		
 		imlib_image_tile_horizontal();
 		setAlpha(rootimg, alpha);
 		
