@@ -204,10 +204,10 @@ return 0;
 int parse_color (char *arg, PColor c, int a)
 {
 	if (arg[0] != '#')
-		return 0;
+		return 1;
 		
 	if ((strlen (arg) != 7) && (strlen (arg) != 9))
-		return 0;
+		return 1;
 		
 	c->r = getHex (arg[1]) * 16 + getHex (arg[2]);
 	c->g = getHex (arg[3]) * 16 + getHex (arg[4]);
@@ -217,7 +217,7 @@ int parse_color (char *arg, PColor c, int a)
 	if (strlen (arg) == 9)
 		c->a = getHex (arg[7]) * 16 + getHex (arg[8]);
 		
-	return 1;
+	return 0;
 }
 
 int load_image (ImageMode mode, const char *arg, int rootW, int rootH,
@@ -227,7 +227,7 @@ int load_image (ImageMode mode, const char *arg, int rootW, int rootH,
 	Imlib_Image buffer = imlib_load_image (arg);
 	
 	if (!buffer)
-		return 0;
+		return 1;
 	
 	imlib_context_set_image (buffer);
 	imgW = imlib_image_get_width (), imgH = imlib_image_get_height ();
@@ -302,7 +302,7 @@ int load_image (ImageMode mode, const char *arg, int rootW, int rootH,
 	
 	imlib_context_set_image (rootimg);
 	
-	return 1;
+	return 0;
 } // end function
 
 
@@ -328,7 +328,7 @@ int load_Mod_image (ImageMode mode, const char *arg, int rootW, int rootH,
 	
 	if ( !rootimg )
 	{
-		return 0;
+		return 1;
 	}
 	
 	imlib_context_set_image (buffer);
@@ -404,7 +404,7 @@ int load_Mod_image (ImageMode mode, const char *arg, int rootW, int rootH,
 	
 	imlib_context_set_image (rootimg);
 	
-	return 1;
+	return 0;
 } 
 
 int tile_in_tile (ImageMode mode, const char *arg, int rootW, int rootH, int alpha, Imlib_Image rootimg) {
@@ -418,7 +418,7 @@ int tile_in_tile (ImageMode mode, const char *arg, int rootW, int rootH, int alp
 	Imlib_Image buffer = imlib_load_image (arg);
 	
 	if (!buffer)
-		return 0;
+		return 1;
 	
 	imlib_context_set_image (buffer);
 	imgW = imlib_image_get_width (), imgH = imlib_image_get_height ();
@@ -491,7 +491,7 @@ int tile_in_tile (ImageMode mode, const char *arg, int rootW, int rootH, int alp
 	
 	imlib_context_set_image (rootimg);
 	
-	return 1;
+	return 0;
 }
 
 int  flip_image_within_screen  (ImageMode mode, const char *arg, int rootW, int rootH, int alpha, Imlib_Image rootimg) {
@@ -507,7 +507,7 @@ int  flip_image_within_screen  (ImageMode mode, const char *arg, int rootW, int 
 	Imlib_Image buffer = imlib_load_image (arg);
 	
 	if (!buffer)
-		return 0;
+		return 1;
 	
 	imlib_context_set_image (buffer);
 	imgW = imlib_image_get_width (), imgH = imlib_image_get_height ();
@@ -599,7 +599,7 @@ EAPI void 	imlib_image_orientate (int orientation)
 	
 	imlib_context_set_image (rootimg);
 
-	return 1;
+	return 0;
 } // end flip_image_within_screen   function
 
 int findX(char *whereisX, int *rW, int *rH)
@@ -789,7 +789,7 @@ int main (int argc, char **argv)
 				fprintf (stderr, "Missing color\n");
 				continue;
 			}
-				if (parse_color (argv[i], &c, alpha) == 0)
+				if (parse_color (argv[i], &c, alpha) == 1)
 				{
 					fprintf (stderr, "Bad color (%s)\n", argv[i]);
 					continue;
@@ -812,7 +812,7 @@ int main (int argc, char **argv)
 			fprintf (stderr, "Missing color\n");
 			continue;
 		}
-			if (parse_color (argv[i], &c, alpha) == 0)
+			if (parse_color (argv[i], &c, alpha) == 1)
 			{
 				fprintf (stderr, "Bad color (%s)\n", argv[i - 1]);
 				continue;
@@ -836,7 +836,7 @@ int main (int argc, char **argv)
 				fprintf (stderr, "Missing distance\n");
 				continue;
 			}
-				if (parse_color (argv[i - 1], &c, alpha) == 0)
+				if (parse_color (argv[i - 1], &c, alpha) == 1)
 				{
 					fprintf (stderr, "Bad color (%s)\n", argv[i - 1]);
 					continue;
@@ -877,7 +877,7 @@ int main (int argc, char **argv)
               continue;
             }
             if (load_image (Fill, argv[i], width, height, alpha, image) ==
-              0)
+              1)
             {
               fprintf (stderr, "Bad image (%s)\n", argv[i]);
               continue;
@@ -892,7 +892,7 @@ int main (int argc, char **argv)
               continue;
             }
             if (load_image (Full, argv[i], width, height, alpha, image) ==
-              0)
+              1)
             {
               fprintf (stderr, "Bad image (%s)\n", argv[i]);
               continue;
@@ -927,7 +927,7 @@ int main (int argc, char **argv)
 				w = w;
 				h = h;
 			}
-			if( load_Mod_image(Dia, argv[i], w, h, alpha, image) == 0 )
+			if( load_Mod_image(Dia, argv[i], w, h, alpha, image) == 1 )
 			{
 			fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
 			}
@@ -967,7 +967,7 @@ int main (int argc, char **argv)
 								w = w; //set str3 W
 								h = h; //set str3 H
 							}
-			if( tile_in_tile(Tileh, argv[i], w, h, alpha, image ) == 0 )
+			if( tile_in_tile(Tileh, argv[i], w, h, alpha, image ) == 1 )
 			{
 			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
 			}
@@ -1008,7 +1008,7 @@ int main (int argc, char **argv)
 								w = w; //set str3 W
 								h = h; //set str3 H
 							}
-			if( tile_in_tile(Tilev, argv[i], w, h, alpha, image ) == 0 )
+			if( tile_in_tile(Tilev, argv[i], w, h, alpha, image ) == 1 )
 			{
 			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
 			}
@@ -1049,7 +1049,7 @@ int main (int argc, char **argv)
 								w = w; //set str3 W
 								h = h; //set str3 H
 							}
-			if( tile_in_tile(Tilet, argv[i], w, h, alpha, image ) == 0 )
+			if( tile_in_tile(Tilet, argv[i], w, h, alpha, image ) == 1 )
 			{
 			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
 			}
@@ -1093,7 +1093,7 @@ int main (int argc, char **argv)
 								w = w; //set str3 W
 								h = h; //set str3 H
 							}
-			if( load_Mod_image(Tilex, argv[i], w, h, alpha, image ) == 0 )
+			if( load_Mod_image(Tilex, argv[i], w, h, alpha, image ) == 1 )
 			{
 			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
 			}
@@ -1112,17 +1112,17 @@ int main (int argc, char **argv)
 		if ((++i) >= argc  )
 
 			{
-			fprintf(stderr, "format <direction> <dia> <image> missing \n");
+			fprintf(stderr, " BAD BAD FORMAT\n");
 			continue;
 			}
 				if ((++i) >= argc )
 				{
-					fprintf(stderr, "format <dia> <image> missing\n");
+					fprintf(stderr, "BAD FORMAT BAD\n");
 					continue;
 				}
 					if ((++i) >= argc && argc + 1 )
 					{
-						fprintf(stderr, "missing image\n");
+						fprintf(stderr, "NEED BETTER FORMAT CHECK HELP\n");
 						continue;
 					}
 		
@@ -1186,7 +1186,7 @@ int main (int argc, char **argv)
 			fprintf (stderr, "Missing image\n");
 			continue;
 		}
-			if (load_image (Tile, argv[i], width, height, alpha, image) == 0)
+			if (load_image (Tile, argv[i], width, height, alpha, image) == 1)
 			{
 				fprintf (stderr, "Bad image (%s)\n", argv[i]);
 				continue;
@@ -1199,7 +1199,7 @@ int main (int argc, char **argv)
 			fprintf (stderr, "Missing image\n");
 			continue;
 		}
-			if (load_image (Center, argv[i], width, height, alpha, image) == 0)
+			if (load_image (Center, argv[i], width, height, alpha, image) == 1 )
 			{
 				fprintf (stderr, "Bad image (%s)\n", argv[i]);
 				continue;
@@ -1216,7 +1216,7 @@ int main (int argc, char **argv)
 			fprintf (stderr, "Missing color\n");
 			continue;
 		}
-			if (parse_color (argv[i], &c, 255) == 0)
+			if (parse_color (argv[i], &c, 255) == 1)
 			{
 				fprintf (stderr, "Bad color\n");
 				continue;
