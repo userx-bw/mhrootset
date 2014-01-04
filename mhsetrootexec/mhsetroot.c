@@ -1,30 +1,32 @@
 /*
- * main.c
- * 
- * Copyright 2013 userx <userx@gmail.com>
- * 
+ * mhsetroot.c
+ *
+ * Copyright 2013 Michael Heras   <userxbw@gmail.com>
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- * 
- * 
+ *
+ *
  *
  * complie with this line
  *
  * `imlib2-config --cflags` `imlib2-config --libs`
  *
  * */
+
+
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -47,44 +49,45 @@ int main (int argc, char **argv)
 	Visual *vis;
 	Colormap cm;
 	Display *_display;
-	Imlib_Context *context;
+	Imlib_Context context;
 	Imlib_Image image;
 	Pixmap pixmap;
 	Imlib_Color_Modifier modifier = NULL;
 	_display = XOpenDisplay (NULL);
 	int width, height, depth, i, alpha;
 
-	
+
 	char str1[40];
 	char str2[40];
 	char str3[40];
 	char str4[40];
 	char str5[40];
+
 	int ck0;
 	int w, h;
 	w = 0;
 	h = 0;
 
-		//check to be sure that no type o is done on image file
-	ls
-	int x = 0;
-	char strz[30];
-	
-	printf("argc %d, argv[argc-1] %s\n", argc, argv[argc-1]);
-	
-	strcpy(strz, argv[argc-1]);
-	
-	 printf("str1 %s\n", strz);
-	
-	for ( x =1; x < argc; x++)
-	{
-		if (strstr(strz, "jpg")  || strstr(strz, "png") != NULL)
-			printf("found jpg -- %s\n", strz);
-			return 1;
-			
-	 } // end for loop
-	 
-	 
+
+	char strA1[30] = "hwe";
+	char strA2[30] = "hwer";
+	const char jpg[15] = "jpg"; //1
+	const char png[15] = "png"; //2
+
+	char *A1;
+	char *A2;
+
+	strcpy(strA1, argv[argc-1]);
+	strcpy(strA2, strA1);
+	A1 = strstr(strA1, jpg);
+	A2 = strstr(strA2, png);
+
+		//check to be sure image format is written right or abort
+	 	checkForNull(A1, A2);
+
+
+
+
 	for (screen = 0; screen < ScreenCount (_display); screen++)
 	{
 		display = XOpenDisplay (NULL);
@@ -109,16 +112,16 @@ int main (int argc, char **argv)
 		imlib_context_set_colormap (cm);
 		imlib_context_set_drawable (pixmap);
 		imlib_context_set_color_range (imlib_create_color_range ());
-		
+
 		image = imlib_create_image (width, height);
 		imlib_context_set_image (image);
-				
+				printf("1\n");
 		imlib_context_set_color (0, 0, 0, 255);
 		imlib_image_fill_rectangle (0, 0, width, height);
 
 		imlib_context_set_dither (1);
 		imlib_context_set_blend (1);
-
+		printf("2\n");
 		alpha = 255;
 
 
@@ -149,7 +152,7 @@ int main (int argc, char **argv)
 	else if (strcmp (argv[i], "-solid") == 0)
 	{
 		Color c;
-		
+
 		if ((++i) >= argc)
 		{
 			fprintf (stderr, "Missing color\n");
@@ -257,7 +260,7 @@ int main (int argc, char **argv)
 		}
 			strcpy (str1, argv[i]);
 			strcpy (str2, str1);
-				
+
 			if ( findX(str1, &w, &h) == 1 )
 			{
 				fprintf(stderr, " Bad Format\n");
@@ -280,7 +283,7 @@ int main (int argc, char **argv)
 			{
 			fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
 			}
-	} 
+	}
 	else if (strcmp (argv[i], "-tile") == 0)
 	{
 		if ((++i) >= argc)
@@ -297,10 +300,10 @@ int main (int argc, char **argv)
 
 
 			if ( findX(str1, &w, &h) == 3 &&  ((++i) >= argc))
-			{ 
+			{
 				fprintf(stderr, "missing Image\n");
 				continue;
-			} //check to see if format is -tile 0 
+			} //check to see if format is -tile 0
 			else if (findX(str2, &w, &h) == 3)
 			{
 				ck0 = 3;
@@ -326,7 +329,7 @@ int main (int argc, char **argv)
 				ck0 = 2;
 				w = w;
 				h = h;
-				
+
 			}
 			if( load_Mod_image(Tile, argv[i], w, h, alpha, image, ck0) == 1 )
 			{
@@ -524,6 +527,6 @@ int main (int argc, char **argv)
 		imlib_context_free (context);
 
 	} // end for loop off screen
-
+                   //   } //  frist if statment at start of main
   return 0;
 }

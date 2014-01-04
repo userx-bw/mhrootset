@@ -1,7 +1,7 @@
 /*
- * main.c
+ * mhsetroot.c
  * 
- * Copyright 2013 userx <userx@gmail.com>
+ * Copyright 2013 Michael Heras   <userxbw@gmail.com>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@
  * `imlib2-config --cflags` `imlib2-config --libs`
  *
  * */
+ 
+ 
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -33,7 +35,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "functions.h"
+
+#define DESCRIPTION "wallpaper setter with user options"
+#define PACKAGE_STRING "mhrootimg 1.0"
+#define PACKAGE_NAME "mhrootimg"
+#define PACKAGE_TARNAME "mhrootimg"
+#define VERSION "1.0"
+#define PACKAGE_BUGREPORT "userxbw@gmail.com"
+
 
 
 
@@ -42,12 +51,341 @@ Display *display;
 int screen;
 
 
+typedef enum
+{ Fill, Dia, Tile, Center } ImageMode;
+
+typedef struct
+{
+	int r, g, b, a;
+}	Color, *PColor;
+
+
+
+
+void usage (char *commandline)
+{
+  printf (PACKAGE_STRING " - " DESCRIPTION "\n"
+        "\n"
+        "Syntaxis: %s [command1 [arg1..]] [command2 [arg1..]]..."
+        "\n"
+        "Gradients:\n"
+        " -add <color>               Add color to range using distance 1\n"
+        " -addd <color> <distance>   Add color to range using custom distance\n"
+        " -gradient <angle>          Render gradient using specified angle\n"
+        " -clear                     Clear the color range\n"
+        "\n"
+        "Dia:\n"
+        " -Dia <user specified>     Renders image within monitor settings\n"
+        "                           Format  <size>x<size>\n"
+        "Solid:\n"
+        " -solid <color>             Render a solid using the specified color\n"
+        "\n"
+        "Image files:\n"
+        " -center <image>            Render an image centered on screen\n"
+        " -tile 0 <image>            Tiles the image at orginal size\n"
+        " -tile <size>x<image>       Tiles image at user set size\n"
+        " -fill <image>              Render image at monitor settings\n"
+        "\n"
+        "Manipulations:\n"
+        " -tint <color>              Tint the current image\n"
+        " -blur <radius>             Blur the current image\n"
+        " -sharpen <radius>          Sharpen the current image\n"
+        " -contrast <amount>         Adjust contrast of current image\n"
+        " -brightness <amount>       Adjust brightness of current image\n"
+        " -gamma <amount>            Adjust gamma level of current image\n"
+        " -flipv                     Flip the current image vertically\n"
+        " -fliph                     Flip the current image horizontally\n"
+        " -flipd                     Flip the current image diagonally\n"
+        "\n"
+        "Misc:\n"
+        " -alpha <amount>            Adjust alpha level for colors and images\n"
+        " -write <filename>          Write current image to file\n"
+        "\n"
+        "Colors are in the #rrbbgg or #rrggbbaa format.\n"
+        "\n"
+        "Send bugreports to: " PACKAGE_BUGREPORT "\n" "\n", commandline);
+}
+
+// Globals:
+Display *display;
+int screen;
+
+// Adapted from fluxbox' bsetroot
+int setRootAtoms (Pixmap pixmap)
+{
+	Atom atom_root, atom_eroot, type;
+	unsigned char *data_root, *data_eroot;
+	int format;
+	unsigned long length, after;
+
+	atom_root = XInternAtom (display, "_XROOTMAP_ID", True);
+	atom_eroot = XInternAtom (display, "ESETROOT_PMAP_ID", True);
+
+	// doing this to clean up after old background
+	if (atom_root != None && atom_eroot != None)
+	{
+		XGetWindowProperty (display, RootWindow (display, screen),
+							atom_root, 0L, 1L, False, AnyPropertyType,
+							&type, &format, &length, &after, &data_root);
+
+	if (type == XA_PIXMAP)
+	{
+		XGetWindowProperty (display, RootWindow (display, screen),
+							atom_eroot, 0L, 1L, False, AnyPropertyType,
+							&type, &format, &length, &after, &data_eroot);
+
+	if (data_root && data_eroot && type == XA_PIXMAP &&
+		*((Pixmap *) data_root) == *((Pixmap *) data_eroot))
+	{
+		XKillClient (display, *((Pixmap *) data_root));
+	}
+  } // second if
+} //first if
+
+	atom_root = XInternAtom (display, "_XROOTPMAP_ID", False);
+	atom_eroot = XInternAtom (display, "ESETROOT_PMAP_ID", False);
+
+	if (atom_root == None || atom_eroot == None)
+		return 0;
+
+	// setting new background atoms
+	XChangeProperty (display, RootWindow (display, screen),
+					atom_root, XA_PIXMAP, 32, PropModeReplace,
+					(unsigned char *) &pixmap, 1);
+
+	XChangeProperty (display, RootWindow (display, screen), atom_eroot,
+					XA_PIXMAP, 32, PropModeReplace, (unsigned char *) &pixmap,
+					1);
+
+	return 1;
+}
+
+int getHex (char c)
+{
+	switch (c)
+	{
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			return c - '0';
+		case 'A':
+		case 'B':
+		case 'C':
+		case 'D':
+		case 'E':
+		case 'F':
+			return c - 'A' + 10;
+		case 'a':
+		case 'b':
+		case 'c':
+		case 'd':
+		case 'e':
+		case 'f':
+			return c - 'a' + 10;
+	default:
+return 0;
+	}// end switch
+} // end function
+
+int parse_color (char *arg, PColor c, int a)
+{
+	if (arg[0] != '#')
+		return 1;
+
+	if ((strlen (arg) != 7) && (strlen (arg) != 9))
+		return 1;
+
+	c->r = getHex (arg[1]) * 16 + getHex (arg[2]);
+	c->g = getHex (arg[3]) * 16 + getHex (arg[4]);
+	c->b = getHex (arg[5]) * 16 + getHex (arg[6]);
+	c->a = a;
+
+	if (strlen (arg) == 9)
+		c->a = getHex (arg[7]) * 16 + getHex (arg[8]);
+
+	return 0;
+}
+/*****************************
+ *
+ * my modified code
+ *
+ * **********************/
+
+int load_Mod_image (ImageMode mode, const char *arg, int userW, int userH,
+				int alpha, Imlib_Image rootimg, int ck0)
+{
+	int width, height;
+	int imgW, imgH, o;
+	int left, top;
+	left=top=0;
+
+	width = DisplayWidth (display, screen);
+	height = DisplayHeight (display, screen);
+	
+	Imlib_Image buffer = imlib_load_image (arg);
+
+	if ( !rootimg ) 
+	{
+		return 1;
+	}
+
+	imlib_context_set_image (buffer);
+	imgW = imlib_image_get_width (), imgH = imlib_image_get_height ();
+
+	if (alpha < 255)
+	{
+		// Create alpha-override mask
+		imlib_image_set_has_alpha (1);
+		Imlib_Color_Modifier modifier = imlib_create_color_modifier ();
+		imlib_context_set_color_modifier (modifier);
+
+		DATA8 red[256], green[256], blue[256], alph[256];
+		imlib_get_color_modifier_tables (red, green, blue, alph);
+
+		for (o = 0; o < 256; o++)
+			alph[o] = (DATA8) alpha;
+
+		imlib_set_color_modifier_tables (red, green, blue, alph);
+
+		imlib_apply_color_modifier ();
+		imlib_free_color_modifier ();
+	}
+
+		imlib_context_set_image (rootimg);
+
+	if (mode == Fill)
+	{
+		imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH,
+									0, 0, userW, userH);
+	}
+			
+	if (mode == Dia)
+	{
+		
+		
+		if (userW >= width || userH >= height ) 
+		{
+			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, 0, 0, width, height);
+		}
+		else if ( userH < height || userW < width )
+		{
+			int left, top;
+			
+			left = (width - userW) / 2; 
+			top =  (height - userH) / 2; 
+			
+			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, userW, userH);
+		}
+	}
+
+	if (mode == Tile)
+	{
+		int x, y;
+		
+		if ( ck0 == 3 )
+		{
+			left = (width - imgW) / 2;
+			top = (height - imgH) / 2;
+			
+			for (; left > 0; left -= imgW);
+				for (; top > 0; top -= imgH);
+				
+			for (x = left; x < width; x += imgW)
+				for (y = top; y < height; y += imgH)
+			
+			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, x, y, imgW, imgH);
+		}
+		if (ck0 != 3)
+		{ 
+			left = (width - userW) / 2;
+			top = (height - userH) /2;
+			
+			for (; left > 0; left -= userW);
+				for (; top > 0; top -= userH);
+
+			for (x = left; x < width; x += userW)
+				for (y = top; y < height; y += userH)
+			
+			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, x, y, userW, userH);
+		}
+	}
+
+	if (mode == Center)
+	{
+		left = (width - imgW) / 2;
+		top =  (height - imgH) / 2;
+		imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, imgW, imgH);
+	} 
+
+	imlib_context_set_image (buffer);
+	imlib_free_image ();
+
+	imlib_context_set_image (rootimg);
+
+	return 0;
+}
+
+int findX(char *whereisX, int *rW, int *rH)
+{
+	char *tok1, *tok2, *saveptr;
+	char str1[40];
+	int bW, bH;
+	strcpy(str1, whereisX);
+	tok1 = strtok_r(whereisX, "x", &saveptr);
+	tok2 = strtok_r(NULL, "x", &saveptr);
+
+	if ( strcmp(tok1, "0") == 0)
+	{	
+		return 3;
+	}
+	else if ( tok2 == NULL)
+	{ 
+		return 1;
+	}
+	 else
+		{
+			tok1 = strtok_r(str1, "x", &saveptr);
+			tok2 = strtok_r(NULL, "x", &saveptr);
+			bW = atoi(tok1);
+		    bH = atoi(tok2);
+		/* assigning the results to the output */
+           *rW =  bW;
+           *rH =  bH;
+		
+           return 0;
+         }
+} //end findX
+
+void checkForNull(char *A1, char *A2) {
+	
+	
+	 		
+	 		if (A1 && *A1  || A2 && *A2)
+	 		{
+					;
+			}
+			else
+			{	printf("<user error>\nGo buy your Mom some flowers, \nthen come back and try it again \n");
+						
+				abort();
+			}
+			}
+//####################### End Functions ##########################
+
+
 int main (int argc, char **argv)
 {
 	Visual *vis;
 	Colormap cm;
 	Display *_display;
-	Imlib_Context *context;
+	Imlib_Context context;
 	Imlib_Image image;
 	Pixmap pixmap;
 	Imlib_Color_Modifier modifier = NULL;
@@ -60,31 +398,37 @@ int main (int argc, char **argv)
 	char str3[40];
 	char str4[40];
 	char str5[40];
+		
 	int ck0;
-	int w, h;
+	int w, h; 
 	w = 0;
 	h = 0;
-
-		//check to be sure that no type o is done on image file
-	ls
-	int x = 0;
-	char strz[30];
-	
-	printf("argc %d, argv[argc-1] %s\n", argc, argv[argc-1]);
-	
-	strcpy(strz, argv[argc-1]);
-	
-	 printf("str1 %s\n", strz);
-	
-	for ( x =1; x < argc; x++)
-	{
-		if (strstr(strz, "jpg")  || strstr(strz, "png") != NULL)
-			printf("found jpg -- %s\n", strz);
-			return 1;
 			
-	 } // end for loop
-	 
-	 
+			
+	char strA1[30] = "hwe";
+	char strA2[30] = "hwer";
+	const char jpg[15] = "jpg"; //1
+	const char png[15] = "png"; //2
+	
+	char *A1; 
+	char *A2; 
+	
+	strcpy(strA1, argv[argc-1]);
+	strcpy(strA2, strA1);
+	
+	strcpy (str1, argv[argc-2]);
+	strcpy (str2, str1);
+	
+			
+			
+	A1 = strstr(strA1, jpg);
+	A2 = strstr(strA2, png);
+	
+		//check to be sure image format is written right or abort
+				checkForNull(A1, A2);
+		
+		
+		
 	for (screen = 0; screen < ScreenCount (_display); screen++)
 	{
 		display = XOpenDisplay (NULL);
@@ -112,13 +456,13 @@ int main (int argc, char **argv)
 		
 		image = imlib_create_image (width, height);
 		imlib_context_set_image (image);
-				
+				printf("1\n");
 		imlib_context_set_color (0, 0, 0, 255);
 		imlib_image_fill_rectangle (0, 0, width, height);
 
 		imlib_context_set_dither (1);
 		imlib_context_set_blend (1);
-
+		printf("2\n");
 		alpha = 255;
 
 
@@ -255,16 +599,17 @@ int main (int argc, char **argv)
 			fprintf(stderr, "missing Dia, and Image\n");
 			continue;
 		}
-			strcpy (str1, argv[i]);
-			strcpy (str2, str1);
-				
+		printf("in dia\n");
+			//strcpy (str1, argv[i]);
+			//strcpy (str2, str1);
+				 printf("%s\n", str2);
 			if ( findX(str1, &w, &h) == 1 )
 			{
 				fprintf(stderr, " Bad Format\n");
 				continue;
 			}
 			else if (findX(str2, &w, &h) == 0 && ((++i) >= argc))
-			{
+			{ printf("argc %d, -- argv[i] %s\n", argc, argv[i]);
 				fprintf(stderr, "Missing Image\n");
 				continue;
 			}
@@ -273,8 +618,9 @@ int main (int argc, char **argv)
 				//if format is correct then assign a number for
 				//load_Mod_Image to check
 				ck0 = -2;
-				w = w;
-				h = h;
+				w = w; // newW
+				h = w; //newH;
+				printf("%d w, %d h\n", w, h);
 			}
 			if( load_Mod_image(Dia, argv[i], w, h, alpha, image, ck0) == 1 )
 			{
@@ -524,6 +870,15 @@ int main (int argc, char **argv)
 		imlib_context_free (context);
 
 	} // end for loop off screen
-
+                   //   } //  frist if statment at start of main
   return 0;
 }
+
+
+
+
+
+
+
+
+
