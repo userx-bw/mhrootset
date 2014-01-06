@@ -4,7 +4,7 @@
  * 
  * added 
  * 
- * Tile image within image at orginal image size Jan. 4, 2014
+ * Tile image within image at orginal image size Jan. 6, 2014
  * 
  * 
  * complie with this line
