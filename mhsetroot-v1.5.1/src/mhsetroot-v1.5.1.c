@@ -1,16 +1,18 @@
 
 /* Michael Heras 
- * mhsetroot v1.6 (c) 2014
+ * mhsetroot v1.5.1 (c) 2014
  * 
  * added 
  * 
- * Tile image within image at orginal image size Jan. 4, 2014
+ * tile image within image 
+ * fixed minor bug Jan. 4, 2014
  * 
  * 
  * complie with this line
  *
  * `imlib2-config --cflags` `imlib2-config --libs`
- * Jan. 4, 2014
+ * 
+ * Jan, 3, 2014
  * */
 
 #include <X11/Xlib.h>
@@ -20,101 +22,80 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "functions.h"
+#include "../config/functions.h"
 
 
 
-typedef enum
+void usage (char *commandline)
 {
-	 // orginal size image modes center screen 
-	Fill, FullScreen, Center, Tile, FlipImgD, FlipImgH, FlipImgV,
-	 // tile image within image orginal size image
-	 TileV, TileH, TileHV,
-	 
-	//resized image modes center screen, 
-	DImg, DFlipImgH, DFlipImgV, DFlipImgD, 
-	// resized image tiled
-	DTile, DTileH, DTileV, DTileHV
-	
-} ImageMode;
-
-
-typedef struct
-{
-	int r, g, b, a;
-}	Color, *PColor;
-
-
+  printf (PACKAGE_STRING " - " DESCRIPTION "\n"
+        "\n"
+        "Syntaxis: %s [command1 [arg1..]] [command2 [arg1..]]..."
+        "\n"
+        "Gradients:\n"
+        " -add <color>               Add color to range using distance 1\n"
+        " -addd <color> <distance>   Add color to range using custom distance\n"
+        " -gradient <angle>          Render gradient using specified angle\n"
+        " -clear                     Clear the color range\n"
+        "\n"
+         "Solid:\n"
+        " -solid <color>             Render a solid using the specified color\n"
+        "\n"
+            "Dia:\n"
+        " -dia <diamentions>         Renders to user spects within monitor\n"
+        " - Displays center screen -     settings - Format  100x100\n"
+        "\n"
+        "Tile:\n"
+        "-tile <image>                Renders image at orginal size\n"
+        "\n"
+        "-tilex <dimentions> <image>  Renders image at users set size\n"
+        "                                  Format <size>x<size>\n"
+        "-tileh <dimentions> <image> Renders tiled image within image\n"
+        "                            horizontally\n"
+        "-tilev <dimentions> <image> Renders tiled image within image\n"
+        "                            vertically\n"
+        "-tilet <dimentions> <image> Renders tiled image within image\n"
+        "                            horizontally and vertically\n"
+        "\n"
+        "Image files:\n"
+        " -center <image>            Render an image centered on screen\n"
+        " -tile <image>              Render an image tiled\n"
+        " -full <image>              Render an image maximum aspect\n"
+        " -fill <image>              Render an image strechted\n"
+        "\n"
+        "Manipulations:\n"
+        " -tint <color>              Tint the current image\n"
+        " -blur <radius>             Blur the current image\n"
+        " -sharpen <radius>          Sharpen the current image\n"
+        " -contrast <amount>         Adjust contrast of current image\n"
+        " -brightness <amount>       Adjust brightness of current image\n"
+        " -gamma <amount>            Adjust gamma level of current image\n"
+        " -flipv                     Flip the background screen vertically\n"
+        " -fliph                     Flip the background screen horizontally\n"
+        " -flipd                     Flip the background screen diagonally\n"
+        "FilpImg:\n"
+        "-flipimg <h> or <v> or <d> < dimentions > <image>\n"
+        "Renders an image center screen fliped\n"
+        "h - horizontally  v - vertically, d - diagonally, o - orginal\n"
+        "-flipimg <o> <image> takes no image dimentions.\n"
+        "Sets the image fliped center screen at orginal size of image\n"
+        "You can flip the screen then the image within the screen using both\n"
+        "options. ie. ... -alpha 30 -solid <color> -flipd -flipimg d <dimentions> <image>\n"
+        "\n"
+        "Misc:\n"
+        " -alpha <amount>            Adjust alpha level for colors and images\n"
+        " -write <filename>          Write current image to file\n"
+        "\n"
+        "Colors are in the #rrbbgg or #rrggbbaa format.\n"
+        "ie. -addd <color> <dist> -addd <color> <dist> -gradient <angle>\n"
+        "ie. -add <color> -add <color> -gradient <angle>\n"
+        "\n"
+        "Send bugreports to: " PACKAGE_BUGREPORT "\n" "\n", commandline);
+}
 
 // Globals:
 Display *display;
 int screen;
-
-
-
-void usage  (char *commandline)
-{
-	printf(PACKAGE_STRING" - "DESCRIPTION "\n"
-	"\n"
-	"Syntax is: %s [command1 <arg1..>] [command2 <arg1..>]..."
-	"\n"
-	"To add colors and manipulations to your screen\n"
-	" -solid <color>             Fills screen with solid color\n"
-	"Gradients:\n"
-    " -add <color>               Add color to range using distance 1\n"
-    " -addd <color> <distance>   Add color to range using custom distance\n"
-    " -gradient <angle>          Render gradient using specified angle\n"
-    " -clear                     Clear the color range\n"
-    "\n"
-    "Colors are in the #rrbbgg or #rrggbbaa format.\n"
-    "ie. -addd ""\"""#ff0000""\" <a number for distance> -addd ""\"""#ff0000""\" <a number for distance> -gradient <angle>\n"
-    "ie. -add ""\"""#ff0000""\" -add ""\"""#ff0000""\" -gradient <angle>\n"
-   "\n"
-	"Manipulations:\n"
-    " -tint <color>              Tint the current image\n"
-    " -blur <radius>             Blur the current image\n"
-    " -sharpen <radius>          Sharpen the current image\n"
-    " -contrast <amount>         Adjust contrast of current image\n"
-    " -brightness <amount>       Adjust brightness of current image\n"
-    " -gamma <amount>            Adjust gamma level of current image\n"
-    " -alpha <amount>            Adjust alpha level for colors and images\n\n"
-    "To set image at orginal size center screen:\n"
-	"\n"
-    " -center <image>            Sets image centered on screen\n"
-    " -fullscreen <image>        Sets image full screen\n"      
-    " -fill <image>              Sets image maximum aspect\n" 
-    " -flipimgD <image>          Sets image diagonally\n"
-    " -flipimgH <image>          Sets image horizontally\n"
-    " -flipimgV <image>          Sets image vertically\n\n"
-    "To set image tiled on screen\n\n"
-    " -tile <image>              Sets image tiled\n"
-    " -tileV <image>             Sets image tiled horizontally within itself\n"
-    " -tileH <image>             Sets image tiled horizontally within itself\n"
-    " -tileHV <image>            Sets image tiled horizontally and vertically within itself\n"
-    "\n"
-	"To set image resized center screen:\n"
-	"\n"
-	" -dimg <dimentions> <image> Sets image resized to what ever you put in\n"
-	" -dflipimgH <dimentions> <image> Sets image resized horizontally to what ever you put in\n"
-	" -dflipimhV <dimentions> <image> Sets image resized vertically to what ever you put in\n" 
-	" -dflipimgD <dimentions> <image> Sets image resized diagonally to what ever you put in\n\n"
-	"To set resized image tiled:\n\n"
-	" -dtile <dimentions> <image> Sets image resized tiled\n" 
-	" -dtileH <dimentions> <image> Sets image resized tiled horizontally within itself\n"
-	" -dtileV <dimentions> <image> Sets image resized tiled vertically within itself\n"
-	" -tileHV <dimentions> <image> Sets image resized tiled horizontally and vertically within itself\n\n"
-	"Resizing image format is:\n"
-	" -command -arg1 <size> x <size> -arg2 <path/to/image/>  or -dimg 100x100 <path/to/image/imagename.ext>\n"
-	"Example:\n"
-	" mhsetroot -addd ""\"""#FF0000""\" 3 -addd ""\"""#0000FF""\" 5 -gradient 45 -alpha 50 -dflipimgD 100x200 <PathToImage/ImageNuserx-bwame.ext>\n"
-	"Misc:\n"
-    " -write <filename>          Write current image to file\n"
-    "\n"
-    "Send bugreports to: " PACKAGE_BUGREPORT "\n" "\n", commandline);
-	
-}
-
-
 
 
  void setAlpha(Imlib_Image rootimg,  int alp){
@@ -197,7 +178,14 @@ int setRootAtoms (Pixmap pixmap)
 }
 
 
+typedef enum
+{ Fill, Full, Center, Tile, Dia, Tilex, Tileh, Tilev, Tilet } ImageMode;
 
+
+typedef struct
+{
+	int r, g, b, a;
+}	Color, *PColor;
 
 int getHex (char c)
 {
@@ -252,31 +240,34 @@ int parse_color (char *arg, PColor c, int a)
 	return 0;
 }
 
-	// flip orginal sized image within the screen
-int setOrginalSizedImageFlippedCenterScreen (ImageMode mode, const char *arg, int rootW, int rootH,
-												int alpha, Imlib_Image rootimg)
+	
+int setOrginalImageFlip (char *orginalSize, const char *arg, int rootW, int rootH,
+				int alpha, Imlib_Image rootimg)
 {
 
 	
 	int left, top, height, width; 
 	int imgW, imgH; 	
-			
+		
+		
+		
 	width = DisplayWidth (display, screen);
 	height = DisplayHeight (display, screen);
-		
-	// create buffer for image
+	
+	
+	
 	Imlib_Image buffer = imlib_load_image (arg);
 	
 	if (!buffer)
 		return 1;
-	// set to current image to work on
+	
 	imlib_context_set_image (buffer);
 	imgW = imlib_image_get_width (), imgH = imlib_image_get_height ();
-	
-	//get mesurements for centering image
 	left = (rootW - imgW) / 2, top = (rootH - imgH) / 2;
-		
-	if (mode == FlipImgH)
+	
+	
+	
+	if (strcmp(orginalSize, "h") == 0 )
 	{
 		imlib_image_flip_horizontal ();
 				
@@ -284,8 +275,8 @@ int setOrginalSizedImageFlippedCenterScreen (ImageMode mode, const char *arg, in
 		
 		imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, imgW, imgH);
 	}
-		
-	if (mode == FlipImgV)
+	
+	if (strcmp(orginalSize, "v") == 0 )
 	{
 		 imlib_image_flip_vertical ();
 		 
@@ -294,15 +285,15 @@ int setOrginalSizedImageFlippedCenterScreen (ImageMode mode, const char *arg, in
 		imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, imgW, imgH);
 	}
 	
-	if (mode == FlipImgD)
-	{ 
+	if (strcmp(orginalSize, "d") == 0 )
+	{
 		imlib_image_flip_diagonal ();
 		
 	  	setAlpha(rootimg, alpha);
 	  	
 	  	left = (width - imgH) / 2, top =  (height - imgW) / 2;
-	  
-	  	imlib_blend_image_onto_image (buffer, 0, 0, 0, imgH, imgW, left, top, imgH, imgW); 
+	  	
+	  	imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, imgH, imgW); 
 	}
 	
 		imlib_context_set_image (buffer);
@@ -312,90 +303,9 @@ int setOrginalSizedImageFlippedCenterScreen (ImageMode mode, const char *arg, in
 	return 0;
 } // end function
 
-// tile orginal size image within itself 
-int setOrginalSizeImageTiledWithinItself(ImageMode mode, const char *arg, int rootW, int rootH, int alpha, Imlib_Image rootimg) {		
-	int left, top, x, y;
-	int width, height; 
-	int imgW, imgH;
-		
-	Imlib_Image buffer = imlib_load_image (arg);
 	
-	if (!buffer)
-		return 1;
-	
-	imlib_context_set_image (buffer);
-	imgW = imlib_image_get_width (), imgH = imlib_image_get_height ();
-	
-	width = DisplayWidth (display, screen);
-	height = DisplayHeight (display, screen);
-	//sets image to work on	
-	imlib_context_set_image (buffer);
-	
-	if (mode == TileH)
-	{
-		
-		imlib_image_tile_horizontal();
-		setAlpha(rootimg, alpha);
-		
-		// set x y 
-		left = (width - rootW) / 2;
-		top = (height - rootH) /2;
-			
-			for (; left > 0; left -= rootW);
-				for (; top > 0; top -= rootH);
-
-			for (x = left; x < width; x += rootW)
-				for (y = top; y < height; y += rootH)
-			
-			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, x, y, rootW, rootH);
-     }
-     
-     
-	if (mode == TileV)
-	{
-		imlib_image_tile_vertical();
-		setAlpha(rootimg, alpha);
-		
-		left = (width - rootW) / 2;
-			top = (height - rootH) /2;
-			
-			for (; left > 0; left -= rootW);
-				for (; top > 0; top -= rootH);
-
-			for (x = left; x < width; x += rootW)
-				for (y = top; y < height; y += rootH)
-			
-			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, x, y, rootW, rootH);
-     }
-      
-   if (mode == TileHV)
-	{
-		imlib_image_tile();
-		setAlpha(rootimg, alpha);
-		
-		left = (width - rootW) / 2;
-			top = (height - rootH) /2;
-			
-			for (; left > 0; left -= rootW);
-				for (; top > 0; top -= rootH);
-
-			for (x = left; x < width; x += rootW)
-				for (y = top; y < height; y += rootH)
-			
-			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, x, y, rootW, rootH);
-     }
-      
-
-	imlib_context_set_image (buffer);
-	imlib_free_image ();
-	
-	imlib_context_set_image (rootimg);
-	
-	return 0;
-}
-								
-int setOrginalSizeImageCenterScreen(ImageMode mode, const char *arg, int rootW, int rootH,
-										int alpha, Imlib_Image rootimg)
+int load_image (ImageMode mode, const char *arg, int rootW, int rootH,
+				int alpha, Imlib_Image rootimg)
 {
 	int imgW, imgH; 
 	Imlib_Image buffer = imlib_load_image (arg);
@@ -407,13 +317,15 @@ int setOrginalSizeImageCenterScreen(ImageMode mode, const char *arg, int rootW, 
 	imgW = imlib_image_get_width (), imgH = imlib_image_get_height ();
 	
 	setAlpha(rootimg, alpha);
-		
-	if (mode == FullScreen)
+	
+	
+	if (mode == Fill)
 	{
-		imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, 0, 0, rootW, rootH);
+		imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH,
+									0, 0, rootW, rootH);
 	}
 	
-	else if (mode == Fill)
+	else if (mode == Full)
 	{
 		double aspect = ((double) rootW) / imgW;
 		int top, left;
@@ -460,8 +372,8 @@ int setOrginalSizeImageCenterScreen(ImageMode mode, const char *arg, int rootW, 
 } // end function
 
 
-int setResizedImageCenterScreen (ImageMode mode, const char *arg, int rootW, int rootH,
-									int alpha, Imlib_Image rootimg)
+int load_Mod_image (ImageMode mode, const char *arg, int rootW, int rootH,
+				int alpha, Imlib_Image rootimg)
 { 
 	
 	int left, top, x, y;
@@ -487,7 +399,7 @@ int setResizedImageCenterScreen (ImageMode mode, const char *arg, int rootW, int
 	
 	setAlpha(rootimg, alpha);
 		
-	if (mode == DImg)
+	if (mode == Dia)
 	{
 		
 		
@@ -506,7 +418,7 @@ int setResizedImageCenterScreen (ImageMode mode, const char *arg, int rootW, int
 		}
 	}
 	
-	if (mode == DTile)
+	if (mode == Tilex)
 	{
 		
 		left = (width - rootW) / 2;
@@ -528,8 +440,8 @@ int setResizedImageCenterScreen (ImageMode mode, const char *arg, int rootW, int
 	
 	return 0;
 } 
-// tiles image within itself at users input to resize the image
-int setResizedImageTiledWithinItself(ImageMode mode, const char *arg, int rootW, int rootH, int alpha, Imlib_Image rootimg) {
+
+int tile_in_tile (ImageMode mode, const char *arg, int rootW, int rootH, int alpha, Imlib_Image rootimg) {
 				
 				
 	int left, top, x, y;
@@ -544,21 +456,22 @@ int setResizedImageTiledWithinItself(ImageMode mode, const char *arg, int rootW,
 	
 	imlib_context_set_image (buffer);
 	imgW = imlib_image_get_width (), imgH = imlib_image_get_height ();
-		
+				
+	
+	
 	width = DisplayWidth (display, screen);
 	height = DisplayHeight (display, screen);
 	//sets image to work on	
 	imlib_context_set_image (buffer);
 	
-	if (mode == DTileH)
+	if (mode == Tileh)
 	{
 		
 		imlib_image_tile_horizontal();
 		setAlpha(rootimg, alpha);
 		
-		//set image size x y
 		left = (width - rootW) / 2;
-		top = (height - rootH) /2;
+			top = (height - rootH) /2;
 			
 			for (; left > 0; left -= rootW);
 				for (; top > 0; top -= rootH);
@@ -570,7 +483,7 @@ int setResizedImageTiledWithinItself(ImageMode mode, const char *arg, int rootW,
      }
      
      
-	if (mode == DTileV)
+	if (mode == Tilev)
 	{
 		imlib_image_tile_vertical();
 		setAlpha(rootimg, alpha);
@@ -587,7 +500,7 @@ int setResizedImageTiledWithinItself(ImageMode mode, const char *arg, int rootW,
 			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, x, y, rootW, rootH);
      }
       
-   if (mode == DTileHV)
+   if (mode == Tilet)
 	{
 		imlib_image_tile();
 		setAlpha(rootimg, alpha);
@@ -613,10 +526,10 @@ int setResizedImageTiledWithinItself(ImageMode mode, const char *arg, int rootW,
 	return 0;
 }
 								
-int  setResizedImageFlippedCenterScreen( ImageMode mode, const char *arg, int rootW, int rootH, int alpha, Imlib_Image rootimg) {
+int  flip_image_within_screen  (char *ang, const char *arg, int rootW, int rootH, int alpha, Imlib_Image rootimg, 
+								char *orgianlSizeImageAngle) {
 	
-	int width, height;
-	int left, top; 
+	int width, height, left, top; 
 	int imgW, imgH; 	
 	width = DisplayWidth (display, screen);
 	height = DisplayHeight (display, screen);
@@ -630,19 +543,22 @@ int  setResizedImageFlippedCenterScreen( ImageMode mode, const char *arg, int ro
 	imlib_context_set_image (buffer);
 	imgW = imlib_image_get_width (), imgH = imlib_image_get_height ();
 	
-	if (mode == DFlipImgH)
+	// flip image horzontal
+	
+	if (strcmp(ang, "h") == 0 )
 	{
 		imlib_image_flip_horizontal ();
 		
 		setAlpha(rootimg, alpha);
-		// if image width or height is greater then screen then 
-		// makes image 
+		
 		if (rootW >= width || rootH >= height ) 
 		{
 			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, 0, 0, width, height);
 		}
 		else if ( rootH < height || rootW < width )
 		{
+			
+			
 			left = (width - rootW) / 2; 
 			top =  (height - rootH) / 2; 
 			
@@ -655,7 +571,7 @@ int  setResizedImageFlippedCenterScreen( ImageMode mode, const char *arg, int ro
 	}
 		// flips image vertically
 	
-	if (mode == DFlipImgV)
+	if (strcmp(ang, "v") == 0 )
 	{
 		 imlib_image_flip_vertical ();
 		 setAlpha(rootimg, alpha);
@@ -682,7 +598,7 @@ int  setResizedImageFlippedCenterScreen( ImageMode mode, const char *arg, int ro
 	
 		// flips image diagonally
 	
-		if (mode == DFlipImgD)
+		if (strcmp(ang, "d") == 0 )
 		{
 		 	imlib_image_flip_diagonal ();
 			setAlpha(rootimg, alpha);
@@ -695,11 +611,11 @@ int  setResizedImageFlippedCenterScreen( ImageMode mode, const char *arg, int ro
 			else if ( rootH < height || rootW < width )
 			{
 			
-			 // reverse rootW and rootH to set image on side properly   
+			// reverced rootW rootH
 			left = (width - rootH) / 2; 
 			top =  (height - rootW) / 2; 
-			                             // reverse rootW and rootH to set image on side properly      
-			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, rootH, rootW); 
+			                                  
+			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, rootH, rootW); // reverced rootW and rootH
 			}
 			imlib_context_set_image (buffer);
 			imlib_free_image ();
@@ -742,7 +658,7 @@ int findX(char *whereisX, int *rW, int *rH)
          }
 } //end findX
 	
-/*
+
 // flip image which way 
 
 int flip_Image_which_way(char *angle, char *xy, int *rW, int *rH)
@@ -762,7 +678,7 @@ int flip_Image_which_way(char *angle, char *xy, int *rW, int *rH)
 			bW = atoi(tok1);
 		    bH = atoi(tok2);
 		 
-		// assigning the results to the output
+		/* assigning the results to the output */
            *rW =  bW;
            *rH =  bH;
            
@@ -776,7 +692,7 @@ int flip_Image_which_way(char *angle, char *xy, int *rW, int *rH)
 		
 			bW = atoi(tok1);
 		    bH = atoi(tok2);
-		// assigning the results to the output 
+		/* assigning the results to the output */
            *rW =  bW;
            *rH =  bH;
            
@@ -790,7 +706,7 @@ int flip_Image_which_way(char *angle, char *xy, int *rW, int *rH)
 		
 			bW = atoi(tok1);
 		    bH = atoi(tok2);
-		// assigning the results to the output 
+		/* assigning the results to the output */
            *rW =  bW;
            *rH =  bH;
            
@@ -807,7 +723,6 @@ int flip_Image_which_way(char *angle, char *xy, int *rW, int *rH)
 	
 } //end flip image which way
 
-**/
 
 int main (int argc, char **argv)
 {
@@ -821,6 +736,7 @@ int main (int argc, char **argv)
 	_display = XOpenDisplay (NULL);
 	int width, height, depth, i, alpha;
 	
+	//char *tok1, *tok2, *saveptr;
 	char str1[40];
 	char str2[40];
 	char str3[40];
@@ -975,159 +891,44 @@ int main (int argc, char **argv)
 				continue;
 			}
 			
-	imlib_image_fill_color_range_rectangle (0, 0, width, height, angle);
+		imlib_image_fill_color_range_rectangle (0, 0, width, height,
+												angle);
 	} 
 	
-	
-	//################################################################
-	//################################################################
-	//############ START ORGIANAL SIZE IMAGE SETTINGS ################
-	//################################################################
-	// set image orginal size --
-	else if (strcmp (argv[i], "-fullscreen") == 0)
-	{
-		if ((++i) >= argc)
-		{
-			fprintf (stderr, "Missing image\n");
-            continue;
-         }
-			if (setOrginalSizeImageCenterScreen (FullScreen, argv[i], width, height, alpha, image) == 1)
+	   else if (strcmp (argv[i], "-fill") == 0)
+          {
+            if ((++i) >= argc)
             {
-				fprintf (stderr, "Bad image (%s)\n", argv[i]);
-				continue;
+              fprintf (stderr, "Missing image\n");
+              continue;
             }
-    }
-	else if (strcmp (argv[i], "-fill") == 0)
-    {
-		if ((++i) >= argc)
+            if (load_image (Fill, argv[i], width, height, alpha, image) ==
+              1)
+            {
+              fprintf (stderr, "Bad image (%s)\n", argv[i]);
+              continue;
+            }
+          }
+	
+		else if (strcmp (argv[i], "-full") == 0)
         {
-			fprintf (stderr, "Missing image\n");
-            continue;
-        }
-			if (setOrginalSizeImageCenterScreen (Fill, argv[i], width, height, alpha, image) == 1)
+			if ((++i) >= argc)
             {
-				fprintf (stderr, "Bad image (%s)\n", argv[i]);
-				continue;
+              fprintf (stderr, "Missing image\n");
+              continue;
             }
-    }
-    else if (strcmp (argv[i], "-center") == 0)
-	{
-		if ((++i) >= argc)
-		{
-			fprintf (stderr, "Missing image\n");
-			continue;
-		}
-			if (setOrginalSizeImageCenterScreen (Center, argv[i], width, height, alpha, image) == 1 )
-			{
-				fprintf (stderr, "Bad image (%s)\n", argv[i]);
-				continue;
-			}
-	}
-    else if (strcmp (argv[i], "-tile") == 0)
-	{
-		if ((++i) >= argc)
-		{
-			fprintf (stderr, "Missing image\n");
-			continue;
-		}
-			if (setOrginalSizeImageCenterScreen (Tile, argv[i], width, height, alpha, image) == 1)
-			{
-				fprintf (stderr, "Bad image (%s)\n", argv[i]);
-				continue;
-			}
-	}  //sets orginal size flipped center screen 
-	else if (strcmp(argv[i], "-flipimgV") == 0)
-	{
-		if ((++i) >= argc )
-		{
-			fprintf(stderr, "Bad Format");
-		}
-			if (setOrginalSizedImageFlippedCenterScreen(FlipImgV, argv[i], width, height, alpha, image) == 1)
-			{
-				fprintf(stderr, "Bad Image");
-			}
-	}
-	else if (strcmp(argv[i], "-flipimgH") == 0)
-	{
-		if ((++i) >= argc)
-		{
-			fprintf(stderr, "Bad Format");
-		}
-			if (setOrginalSizedImageFlippedCenterScreen(FlipImgH, argv[i],width,height,alpha,image) == 1)
-			{
-				fprintf(stderr, "Bad Image");
-			}
-	}
-	else if (strcmp(argv[i], "-flipimgD") == 0)
-	{
-		if ((++i) >= argc)
-		{
-			fprintf(stderr, "Bad Format");
-		}
-			if (setOrginalSizedImageFlippedCenterScreen(FlipImgD, argv[i], width,height,alpha,image) == 1)
-			{
-				fprintf(stderr, "Bad Image");
-			}
-	}
-	
-	// tiles the image within in itself at the orginal size image
-	else if (strcmp (argv[i], "-tileH") == 0)
-	{
-		if ((++i) >= argc)
-		{
-			fprintf (stderr, "Missing image\n");
-			continue;
-		}
-			if (setOrginalSizeImageTiledWithinItself(TileH, argv[i], width, height, alpha, image) == 1)
-			{
-				fprintf (stderr, "Bad image (%s)\n", argv[i]);
-				continue;
-			}
-	} // tiles the image within in itself at the orginal size image
-	else if (strcmp (argv[i], "-tileV") == 0)
-	{
-		if ((++i) >= argc)
-		{
-			fprintf (stderr, "Missing image\n");
-			continue;
-		}
-			if (setOrginalSizeImageTiledWithinItself(TileV, argv[i], width, height, alpha, image) == 1)
-			{
-				fprintf (stderr, "Bad image (%s)\n", argv[i]);
-				continue;
-			}
-	} // tiles the image within in itself at the orginal size image
-	else if (strcmp (argv[i], "-tileHV") == 0)
-	{
-		if ((++i) >= argc)
-		{
-			fprintf (stderr, "Missing image\n");
-			continue;
-		}
-			if (setOrginalSizeImageTiledWithinItself(TileHV, argv[i], width, height, alpha, image) == 1)
-			{
-				fprintf (stderr, "Bad image (%s)\n", argv[i]);
-				continue;
-			}
-	} 
-	
-	
-	//#################### END ORGINAL SIZE SETTINGS ###############
-	//##############################################################
-	//##############################################################
-	
-	
-	//###############################################################
-	//###############################################################
-	//########### START RESIZED IMAGE SETTINGS CENTER SCREEN ########
-	
-	
-	    // sets resized image center screen 
-	else if (strcmp (argv[i], "-Dimg") == 0)
+            if (load_image (Full, argv[i], width, height, alpha, image) ==
+              1)
+            {
+              fprintf (stderr, "Bad image (%s)\n", argv[i]);
+              continue;
+            }
+          }
+	else if (strcmp (argv[i], "-dia") == 0)
 	{
 		if((++i) >= argc)
 		{
-			fprintf(stderr, "Bad Format \n");
+			fprintf(stderr, "Bad Format\n");
 			continue;
 		}	
 			strcpy (str1, argv[i]);
@@ -1138,126 +939,68 @@ int main (int argc, char **argv)
 				fprintf(stderr, " Bad Format\n");
 				continue;
 			}
-				else if (findX(str2, &w, &h) == 0 && ((++i) >= argc))
-				{
-					fprintf(stderr, "Missing Image\n");
-					continue;
-				}
-				else  
-				{
-					//sets users input Dimension for image
-					w = w; //set str2 W
-					h = h; //set str2 H
-				}
-		if( setResizedImageCenterScreen(DImg, argv[i], w, h, alpha, image) == 1 )
-		{
-			fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
-		}
-	} 
-			
-	// sets resized image flipped Horazinal center screen
-	else if (strcmp (argv[i], "-dflipimgH") == 0)
-	{
-		if((++i) >= argc)
-		{
-			fprintf(stderr, "Bad Format \n");
-			continue;
-		}	
-			strcpy (str1, argv[i]);
-			strcpy (str2, str1);
-			
-			if ( findX(str1, &w, &h) == 1 )
+			else if (findX(str2, &w, &h) == 0 && ((++i) >= argc))
 			{
-				fprintf(stderr, " Bad Format\n");
+				fprintf(stderr, "Bad Format\n");
 				continue;
 			}
-				else if (findX(str2, &w, &h) == 0 && ((++i) >= argc))
-				{
-					fprintf(stderr, "Missing Image\n");
-					continue;
-				}
-				else  
-				{
-					//sets users input Dimension for image
-					w = w; //set str2 W
-					h = h; //set str2 H
-				}
-		if( setResizedImageFlippedCenterScreen(DFlipImgH, argv[i], w, h, alpha, image) == 1 )
-		{
-			fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
-		}
-	} // sets resized image flipped vertically center screen  
-	else if (strcmp(argv[i], "-dflipimgV") == 0 )
-	{
-		if((++i) >= argc)
-		{
-			fprintf(stderr, "Bad Format \n");
-			continue;
-		}	
-			strcpy (str1, argv[i]);
-			strcpy (str2, str1);
-			
-			if ( findX(str1, &w, &h) == 1 )
+			else  
 			{
-				fprintf(stderr, " Bad Format\n");
-				continue;
+				w = w;
+				h = h;
 			}
-				else if (findX(str2, &w, &h) == 0 && ((++i) >= argc))
-				{
-					fprintf(stderr, "Missing Image\n");
-					continue;
-				}
-				else  
-				{
-					//sets users input Dimension for image
-					w = w; //set str2 W
-					h = h; //set str2 H
-				}
-		if( setResizedImageFlippedCenterScreen(DFlipImgV, argv[i], w, h, alpha, image) == 1 )
-		{
-			fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
-		}
-	} // sets resized image flipped diangly center screen 
-	else if (strcmp(argv[i], "-dflipimgD") == 0)
-	{
-		if((++i) >= argc)
-		{
-			fprintf(stderr, "Bad Format \n");
-			continue;
-		}	
-			strcpy (str1, argv[i]);
-			strcpy (str2, str1);
-			
-			if ( findX(str1, &w, &h) == 1 )
+			if( load_Mod_image(Dia, argv[i], w, h, alpha, image) == 1 )
 			{
-				fprintf(stderr, " Bad Format\n");
-				continue;
-			}
-				else if (findX(str2, &w, &h) == 0 && ((++i) >= argc))
-				{
-					fprintf(stderr, "Missing Image\n");
-					continue;
-				}
-				else  
-				{
-				//sets users input Dimension for image
-				w = w; //set str2 W
-				h = h; //set str2 H
-				}
-		if( setResizedImageFlippedCenterScreen(DFlipImgD, argv[i], w, h, alpha, image) == 1 )
-		{
 			fprintf(stderr, "Bad Image or Bad Image Dimensions \n");
-		}
-	} 
-	
-	// sets resized image tiled
-	else if (strcmp (argv[i], "-dtile") == 0)
+			}
+	}
+	else if (strcmp (argv[i], "-tileh") == 0)
 	{
 		
 		if ((++i) >= argc)
 
 			{
-			fprintf(stderr, "Bad format \n");
+			fprintf(stderr, "Bad format\n");
+			continue;
+			}
+				strcpy (str1, argv[i]);
+				strcpy (str2, str1);
+				strcpy (str3, str2);
+				strcpy (str4, str3);
+							
+				if (findX(str1, &w, &h) == 0 && ((++i) >= argc))
+				{
+					fprintf(stderr, "Bad Format: \n");
+					continue;
+				}
+					if (findX(str2, &w, &h) == 1 && ((++i) >= argc))
+					{
+						fprintf(stderr, "Bad Format\n");
+						continue;
+					}
+						if (findX (str3, &w,&h) == 1 && ((++i) >=argc) )
+						{ 
+							fprintf(stderr, "Bad Format %s\n", argv[i-2]); 
+							continue;
+						}
+							if (findX (str4, &w, &h) == 0 )
+							{ //sets users input Dimension for image
+								w = w; //set str3 W
+								h = h; //set str3 H
+							}
+			if( tile_in_tile(Tileh, argv[i], w, h, alpha, image ) == 1 )
+			{
+			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
+			}
+
+	}
+	else if (strcmp (argv[i], "-tilev") == 0)
+	{
+		
+		if ((++i) >= argc)
+
+			{
+			fprintf(stderr, "Bad format\n");
 			continue;
 			}
 				strcpy (str1, argv[i]);
@@ -1285,133 +1028,199 @@ int main (int argc, char **argv)
 								w = w; //set str3 W
 								h = h; //set str3 H
 							}
-			if( setResizedImageCenterScreen(DTile, argv[i], w, h, alpha, image ) == 1 )
+			if( tile_in_tile(Tilev, argv[i], w, h, alpha, image ) == 1 )
 			{
 			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
 			}
+
+	}
+	else if (strcmp (argv[i], "-tilet") == 0)
+	{
+		
+		if ((++i) >= argc)
+
+			{
+			fprintf(stderr, " a Bad format\n");
+			continue;
+			}
+				strcpy (str1, argv[i]);
+				strcpy (str2, str1);
+				strcpy (str3, str2);
+				strcpy (str4, str3);
+							
+				if (findX(str1, &w, &h) == 0 && ((++i) >= argc))
+				{
+					fprintf(stderr, "Bad Format:\n");
+					continue;
+				}
+					if (findX(str2, &w, &h) == 1 && ((++i) >= argc))
+					{
+						fprintf(stderr, "Bad Format\n");
+						continue;
+					}
+						if (findX (str3, &w,&h) == 1 && ((++i) >=argc) )
+						{ 
+							fprintf(stderr, "Bad Format %s\n", argv[i-2]); 
+							continue;
+						}
+							if (findX (str4, &w, &h) == 0 )
+							{ //sets users input Dimension for image
+								w = w; //set str3 W
+								h = h; //set str3 H
+							}
+			if( tile_in_tile(Tilet, argv[i], w, h, alpha, image ) == 1 )
+			{
+			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
+			}
+
+	}
+	else if (strcmp (argv[i], "-tilex") == 0)
+	{
+		
+		if ((++i) >= argc)
+
+			{
+			fprintf(stderr, "Bad format\n");
+			continue;
+			}
+				strcpy (str1, argv[i]);
+				strcpy (str2, str1);
+				strcpy (str3, str2);
+				strcpy (str4, str3);
+							
+				if (findX(str1, &w, &h) == 0 && ((++i) >= argc))
+				{
+					fprintf(stderr, "Bad Format:\n");
+					continue;
+				}
+					if (findX(str2, &w, &h) == 1 && ((++i) >= argc))
+					{
+						fprintf(stderr, "Bad Format\n");
+						continue;
+					}
+						if (findX (str3, &w,&h) == 1 && ((++i) >=argc) )
+						{ 
+							fprintf(stderr, "Bad Format %s\n", argv[i-2]); 
+							continue;
+						}
+							if (findX (str4, &w, &h) == 0 )
+							{ //sets users input Dimension for image
+								w = w; //set str3 W
+								h = h; //set str3 H
+							}
+			if( load_Mod_image(Tilex, argv[i], w, h, alpha, image ) == 1 )
+			{
+			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
+			}
+
+	}
+	else if (strcmp (argv[i], "-flipimg") == 0)
+	{   
+		if ((++i) >= argc  )
+
+			{ 
+			fprintf(stderr, " BAD BAD FORMAT\n");
+			continue;
+			}
+				if ((++i) >= argc )
+				{
+					fprintf(stderr, "BAD FORMAT BAD\n");
+					continue;
+				}
+					if ((++i) >= argc && argc + 1 )
+					{
+						fprintf(stderr, "NEED BETTER FORMAT CHECK HELP\n");
+						continue;
+					}
+				// takes the angle
+				strcpy (str1, argv[i - 2]);
+				strcpy (str2, str1);
+				strcpy (str3, str2);
+				strcpy (str4,str3);
+				// takes the dimentions
+				char dia1[40];
+				char dia2[40];
+				char dia3[40];
+				char org[40];
+								
+				strcpy(dia1, argv[i - 1]);
+				strcpy(dia2, dia1);
+				strcpy(dia3,dia2);
+				strcpy(org,dia3);
+				
+	
+	// check format -flipimg < h or v or d> < Diamentions > <image>
+	 if (flip_Image_which_way(str1, dia1 , &w, &h) == 4)
+	{ 
+	
+			w = w;
+			h = h;
+		// flip H
+		if( flip_image_within_screen(str1, argv[i], w, h, alpha, image, dia1) == 1 )
+		{
+			fprintf(stderr, "Bad Image |%s|\n", argv[i]);
+			continue;
 		}
-	// tiles resized image Horazonal within itself tiled
-	else if (strcmp (argv[i], "-dtileH") == 0)
+	}
+	
+		if (flip_Image_which_way(str2, dia2 , &w, &h) == 5)
+		{ 
+			w = w;
+			h = h;
+			// flip V
+			if( flip_image_within_screen(str2, argv[i], w, h, alpha, image, dia2) == 1 )
+			{
+				fprintf(stderr, "Bad Image |%s|\n", argv[i]);
+				continue;
+			}
+		}
+			 if (flip_Image_which_way(str3, dia3 , &w, &h) == 6)
+			{ 
+				w = w;
+				h = h;
+				// flip D
+				if( flip_image_within_screen(str3, argv[i], w, h, alpha, image, dia3) == 1 )
+				{
+					fprintf(stderr, "Bad Image |%s|\n", argv[i]);
+					continue;
+				}
+			}
+			if (flip_Image_which_way(str4,org, &w,&h) == 7 )
+			{    /* flip Orginal size image */ 
+			
+				if( setOrginalImageFlip(str4, argv[i], width, height, alpha, image) == 1 ) //, org) == 1 )
+				{
+					fprintf (stderr, "Bad image (%s)\n", argv[i]);
+					continue;
+				}
+			}
+	}
+	else if (strcmp (argv[i], "-tile") == 0)
 	{
 		if ((++i) >= argc)
 		{
-			fprintf(stderr, "Bad format \n");
+			fprintf (stderr, "Missing image\n");
 			continue;
 		}
-			strcpy (str1, argv[i]);
-			strcpy (str2, str1);
-			strcpy (str3, str2);
-			strcpy (str4, str3);
-							
-			if (findX(str1, &w, &h) == 0 && ((++i) >= argc))
+			if (load_image (Tile, argv[i], width, height, alpha, image) == 1)
 			{
-				fprintf(stderr, "Bad Format: \n");
+				fprintf (stderr, "Bad image (%s)\n", argv[i]);
 				continue;
 			}
-				if (findX(str2, &w, &h) == 1 && ((++i) >= argc))
-				{
-					fprintf(stderr, "Bad Format\n");
-					continue;
-				}
-					if (findX (str3, &w,&h) == 1 && ((++i) >=argc) )
-					{ 
-						fprintf(stderr, "Bad Format %s\n", argv[i-2]); 
-						continue;
-					}
-						if (findX (str4, &w, &h) == 0 )
-						{ //sets users input Dimension for image
-							w = w; //set str3 W
-							h = h; //set str3 H
-						}
-			if(setResizedImageTiledWithinItself(DTileH, argv[i], w, h, alpha, image ) == 1 )
-			{
-			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
-			}
-
-	} // sets resized image veritically within inself tiled
-	else if (strcmp (argv[i], "-dtileV") == 0)
+	}
+	else if (strcmp (argv[i], "-center") == 0)
 	{
-		
 		if ((++i) >= argc)
-
-			{
-			fprintf(stderr, "Bad format \n");
+		{
+			fprintf (stderr, "Missing image\n");
 			continue;
-			}
-				strcpy (str1, argv[i]);
-				strcpy (str2, str1);
-				strcpy (str3, str2);
-				strcpy (str4, str3);
-							
-				if (findX(str1, &w, &h) == 0 && ((++i) >= argc))
-				{
-					fprintf(stderr, "Bad Format: \n");
-					continue;
-				}
-					if (findX(str2, &w, &h) == 1 && ((++i) >= argc))
-					{
-						fprintf(stderr, "Bad Format\n");
-						continue;
-					}
-						if (findX (str3, &w,&h) == 1 && ((++i) >=argc) )
-						{ 
-							fprintf(stderr, "Bad Format %s\n", argv[i-2]); 
-							continue;
-						}
-							if (findX (str4, &w, &h) == 0 )
-							{ //sets users input Dimension for image
-								w = w; //set str3 W
-								h = h; //set str3 H
-							}
-			if( setResizedImageTiledWithinItself(DTileV, argv[i], w, h, alpha, image ) == 1 )
+		}
+			if (load_image (Center, argv[i], width, height, alpha, image) == 1 )
 			{
-			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
+				fprintf (stderr, "Bad image (%s)\n", argv[i]);
+				continue;
 			}
-
-	} // sets rezied image both Horazonal and Vertically within itself tiled
-	else if (strcmp (argv[i], "-dtileHV") == 0)
-	{
-		
-		if ((++i) >= argc)
-
-			{
-			fprintf(stderr, "Bad format \n");
-			continue;
-			}
-				strcpy (str1, argv[i]);
-				strcpy (str2, str1);
-				strcpy (str3, str2);
-				strcpy (str4, str3);
-							
-				if (findX(str1, &w, &h) == 0 && ((++i) >= argc))
-				{
-					fprintf(stderr, "Bad Format: \n");
-					continue;
-				}
-					if (findX(str2, &w, &h) == 1 && ((++i) >= argc))
-					{
-						fprintf(stderr, "Bad Format\n");
-						continue;
-					}
-						if (findX (str3, &w,&h) == 1 && ((++i) >=argc) )
-						{ 
-							fprintf(stderr, "Bad Format %s\n", argv[i-2]); 
-							continue;
-						}
-							if (findX (str4, &w, &h) == 0 )
-							{ //sets users input Dimension for image
-								w = w; //set str3 W
-								h = h; //set str3 H
-							}
-			if(setResizedImageTiledWithinItself(DTileHV, argv[i], w, h, alpha, image ) == 1 )
-			{
-			fprintf(stderr, "Bad Image <%s> \n", argv[i]);
-			}
-
-	} 
-	//#################################################################
-	//################# END RESIZE IMAGE CODE #########################
-	
+	}
 	else if (strcmp (argv[i], "-tint") == 0)
 	{
 		Color c;
@@ -1543,7 +1352,7 @@ int main (int argc, char **argv)
 	}
 	else
 	{
-		usage (argv[0]); //calls helpp file argv[0]
+		usage (argv[0]);
 		imlib_free_image ();
 		imlib_free_color_range ();
 		

@@ -1,0 +1,30 @@
+MHSETROOT Features:
+Powered by ImLib2
+
+No more having to resize your image to make it fit. mhsetroot gives you the ability
+ to set any size image to the center of the screen any size you want. 
+
+Make your Screen splash with cool any size tile effects. 
+
+Tile any size image on your screen any size you want either vertically or horizontally,
+ or both, no more having to resize your images first before using them for wallpaper.  
+
+Flip the image any size you want center screen,  vertically, horizontally, diagonally.
+Flip the monitor screen separately either vertically, horizontally, diagonally.
+Flip them both at the same time in opposing angles for some really cools effects. 
+
+Set the background color with two separate colors w/ gradient for added eye candy.
+Set the image full screen, center, fill, and tile all at original image size. 
+Set one solid color for background with or without image. 
+Set image alpha for a transparent  effect. 
+Change the tint, blur, sharpen, contrast, brightness, and gamma settings to the images. 
+Save background to file.
+
+Includes Bash script to change your background setting and images randomly, and if you change
+ your mind on what time you want all of that to change, you can change that too, just type it into
+  your command line to change the time that you want all of that to change.  
+
+   Images Only render onto screen within Monitor and imLib2 limitations. 
+   
+ added tile the image within image vertically, horizontally, diagonally and vertically,
+ at the orginal image size. v 1.6

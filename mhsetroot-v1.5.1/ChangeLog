@@ -1,0 +1,10 @@
+mhsetroot 1.5 - Jan. 1, 2014
+ - Fixed -tile 
+ - Jan. 3, 2014 
+ - added the ability to tile image across the screen within itself horizontally or vertically
+ at users settings.
+ 
+ - added the ability too flip the image on screen horizontally or vertically or original size
+ set center screen
+
+- fixed minor bug Jan. 4, 2014

@@ -4,7 +4,7 @@
  * 
  * added 
  * 
- * Tile image within image at orginal image size Jan. 4, 2014
+ * Tile image within image at orginal image size Jan. 6, 2014
  * 
  * 
  * complie with this line
@@ -86,27 +86,31 @@ void usage  (char *commandline)
     " -flipimgD <image>          Sets image diagonally\n"
     " -flipimgH <image>          Sets image horizontally\n"
     " -flipimgV <image>          Sets image vertically\n\n"
-    "To set image tiled on screen\n\n"
+    "To set image at orginal size tiled on screen\n\n"
     " -tile <image>              Sets image tiled\n"
-    " -tileV <image>             Sets image tiled horizontally within itself\n"
-    " -tileH <image>             Sets image tiled horizontally within itself\n"
-    " -tileHV <image>            Sets image tiled horizontally and vertically within itself\n"
+    " -tileV <image>             Sets image tiled & tiled horizontally within itself\n"
+    " -tileH <image>             Sets image tiled & tiled horizontally within itself\n"
+    " -tileHV <image>            Sets image tiled & tiled horizontally and vertically within itself\n"
     "\n"
+    "To Flip the Screen around the image:\n\n"
+    " -flipv                    Flips the screen vertically\n"
+    " -fliph                    Flips the screen horizontally\n"
+    " -flipd					Flips the screen diagonally\n"
 	"To set image resized center screen:\n"
 	"\n"
-	" -dimg <dimentions> <image> Sets image resized to what ever you put in\n"
+	" -dimg      <dimentions> <image> Sets image resized to what ever you put in\n"
 	" -dflipimgH <dimentions> <image> Sets image resized horizontally to what ever you put in\n"
 	" -dflipimhV <dimentions> <image> Sets image resized vertically to what ever you put in\n" 
 	" -dflipimgD <dimentions> <image> Sets image resized diagonally to what ever you put in\n\n"
 	"To set resized image tiled:\n\n"
-	" -dtile <dimentions> <image> Sets image resized tiled\n" 
-	" -dtileH <dimentions> <image> Sets image resized tiled horizontally within itself\n"
-	" -dtileV <dimentions> <image> Sets image resized tiled vertically within itself\n"
-	" -tileHV <dimentions> <image> Sets image resized tiled horizontally and vertically within itself\n\n"
+	" -dtile  <dimentions> <image> Sets image resized tiled\n" 
+	" -dtileH <dimentions> <image> Sets image resized tiled & tiled horizontally within itself\n"
+	" -dtileV <dimentions> <image> Sets image resized tiled & tiled vertically within itself\n"
+	" -tileHV <dimentions> <image> Sets image resized tiled & tiled horizontally and vertically within itself\n\n"
 	"Resizing image format is:\n"
-	" -command -arg1 <size> x <size> -arg2 <path/to/image/>  or -dimg 100x100 <path/to/image/imagename.ext>\n"
+	" -command -arg1 <size> x <size> -arg2 <path/to/image/>  ie. -dimg 100x100 <path/to/image/imagename.ext>\n"
 	"Example:\n"
-	" mhsetroot -addd ""\"""#FF0000""\" 3 -addd ""\"""#0000FF""\" 5 -gradient 45 -alpha 50 -dflipimgD 100x200 <PathToImage/ImageNuserx-bwame.ext>\n"
+	" mhsetroot -addd ""\"""#FF0000""\" 3 -addd ""\"""#0000FF""\" 5 -gradient 45 -alpha 50 -flipd -dflipimgD 100x200 <PathToImage/ImageNuserx-bwame.ext>\n"
 	"Misc:\n"
     " -write <filename>          Write current image to file\n"
     "\n"
@@ -1123,7 +1127,7 @@ int main (int argc, char **argv)
 	
 	
 	    // sets resized image center screen 
-	else if (strcmp (argv[i], "-Dimg") == 0)
+	else if (strcmp (argv[i], "-dimg") == 0)
 	{
 		if((++i) >= argc)
 		{
