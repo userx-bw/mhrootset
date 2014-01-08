@@ -100,7 +100,7 @@ void usage  (char *commandline)
 	"\n"
 	" -dimg      <dimentions> <image> Sets image resized to what ever you put in\n"
 	" -dflipimgH <dimentions> <image> Sets image resized horizontally to what ever you put in\n"
-	" -dflipimhV <dimentions> <image> Sets image resized vertically to what ever you put in\n" 
+	" -dflipimgV <dimentions> <image> Sets image resized vertically to what ever you put in\n" 
 	" -dflipimgD <dimentions> <image> Sets image resized diagonally to what ever you put in\n\n"
 	"To set resized image tiled:\n\n"
 	" -dtile  <dimentions> <image> Sets image resized tiled\n" 
@@ -110,7 +110,7 @@ void usage  (char *commandline)
 	"Resizing image format is:\n"
 	" -command -arg1 <size> x <size> -arg2 <path/to/image/>  ie. -dimg 100x100 <path/to/image/imagename.ext>\n"
 	"Example:\n"
-	" mhsetroot -addd ""\"""#FF0000""\" 3 -addd ""\"""#0000FF""\" 5 -gradient 45 -alpha 50 -flipd -dflipimgD 100x200 <PathToImage/ImageNuserx-bwame.ext>\n"
+	" mhsetroot -addd ""\"""#FF0000""\" 3 -addd ""\"""#0000FF""\" 5 -gradient 45 -alpha 50 -flipd -dflipimgD 100x200 <PathToImage/ImageName.ext>\n"
 	"Misc:\n"
     " -write <filename>          Write current image to file\n"
     "\n"
@@ -256,7 +256,7 @@ int parse_color (char *arg, PColor c, int a)
 	return 0;
 }
 
-	// flip orginal sized image within the screen
+	// flip orginal sized image within the screen set center screen
 int setOrginalSizedImageFlippedCenterScreen (ImageMode mode, const char *arg, int rootW, int rootH,
 												int alpha, Imlib_Image rootimg)
 {
@@ -652,10 +652,6 @@ int  setResizedImageFlippedCenterScreen( ImageMode mode, const char *arg, int ro
 			
 			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, rootW, rootH);
 		}
-		imlib_context_set_image (buffer);
-		imlib_free_image ();
-	
-		imlib_context_set_image (rootimg);
 	}
 		// flips image vertically
 	
@@ -678,10 +674,6 @@ int  setResizedImageFlippedCenterScreen( ImageMode mode, const char *arg, int ro
 			
 			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, rootW, rootH);
 		}
-		imlib_context_set_image (buffer);
-		imlib_free_image ();
-	
-		imlib_context_set_image (rootimg);
 	}
 	
 		// flips image diagonally
@@ -705,12 +697,12 @@ int  setResizedImageFlippedCenterScreen( ImageMode mode, const char *arg, int ro
 			                             // reverse rootW and rootH to set image on side properly      
 			imlib_blend_image_onto_image (buffer, 0, 0, 0, imgW, imgH, left, top, rootH, rootW); 
 			}
-			imlib_context_set_image (buffer);
-			imlib_free_image ();
-	
-			imlib_context_set_image (rootimg);
 		}
 		
+		imlib_context_set_image (buffer);
+		imlib_free_image ();
+	
+		imlib_context_set_image (rootimg);
 		
 	return 0;
 } // end flip_image_within_screen   function
@@ -746,72 +738,6 @@ int findX(char *whereisX, int *rW, int *rH)
          }
 } //end findX
 	
-/*
-// flip image which way 
-
-int flip_Image_which_way(char *angle, char *xy, int *rW, int *rH)
-{ 
-	char *tok1, *tok2, *saveptr;
-	char str1[40];
-	int bW, bH;
-	strcpy(str1, xy);
-	tok1 = strtok_r(xy, "x", &saveptr);
-	tok2 = strtok_r(NULL, "x", &saveptr);
-	
-	if ( strcmp(angle, "h") == 0 && strcmp(tok1, "o") != 0 )
-	{
-		tok1 = strtok_r(str1, "x", &saveptr);
-		tok2 = strtok_r(NULL, "x", &saveptr);
-		
-			bW = atoi(tok1);
-		    bH = atoi(tok2);
-		 
-		// assigning the results to the output
-           *rW =  bW;
-           *rH =  bH;
-           
-		return 4;
-	}
-
-	if (strcmp(angle, "v") == 0 && strcmp(tok1, "o") != 0 )
-	{	
-		tok1 = strtok_r(str1, "x", &saveptr);
-		tok2 = strtok_r(NULL, "x", &saveptr);
-		
-			bW = atoi(tok1);
-		    bH = atoi(tok2);
-		// assigning the results to the output 
-           *rW =  bW;
-           *rH =  bH;
-           
-		return 5;
-	}
-	
-	if (strcmp(angle, "d" ) == 0 && strcmp(tok1, "o") != 0 )
-	{
-		tok1 = strtok_r(str1, "x", &saveptr);
-		tok2 = strtok_r(NULL, "x", &saveptr);
-		
-			bW = atoi(tok1);
-		    bH = atoi(tok2);
-		// assigning the results to the output 
-           *rW =  bW;
-           *rH =  bH;
-           
-		return 6;
-	}
-	
-	if (strcmp(xy, "o") == 0 )
-	{
-		return 7;
-	}
-	else
-	
-		return 1; // errored out no good kill it 
-	
-} //end flip image which way
-
-**/
 
 int main (int argc, char **argv)
 {
@@ -1039,7 +965,8 @@ int main (int argc, char **argv)
 				fprintf (stderr, "Bad image (%s)\n", argv[i]);
 				continue;
 			}
-	}  //sets orginal size flipped center screen 
+	} 
+	 //sets orginal size flipped center screen 
 	else if (strcmp(argv[i], "-flipimgV") == 0)
 	{
 		if ((++i) >= argc )
@@ -1584,8 +1511,9 @@ int main (int argc, char **argv)
 									pixmap);
 		
 		XClearWindow (display, RootWindow (display, screen));
-		
+			
 		XFlush (display);
+		
 		XSync (display, False);
 		
 		imlib_context_pop ();
@@ -1594,4 +1522,4 @@ int main (int argc, char **argv)
 	} // end for loop off screen  
 
   return 0;
-}
+} // end program
